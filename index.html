@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>کارتابل حسابداری استودیو کنج</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+  <style>
+    body { font-family: Vazirmatn, sans-serif; background-color: var(--tg-theme-bg-color, #0f172a); color: var(--tg-theme-text-color, #f8fafc); }
+    .card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+  </style>
+</head>
+<body class="p-4 min-h-screen pb-20">
+  <div id="app">
+    <!-- لودینگ -->
+    <div id="loading" class="text-center py-20">
+      <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-emerald-400"></div>
+      <p class="mt-4 text-slate-400 text-sm">در حال بارگذاری اطلاعات استودیو...</p>
+    </div>
+
+    <!-- ۱. پنل گرافیست -->
+    <div id="designer-view" class="hidden space-y-4">
+      <div class="card rounded-2xl p-5 shadow-lg border-t-2 border-emerald-500">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-xs text-slate-400">صورت‌حساب طراح</span>
+          <span id="d-name" class="text-sm font-bold text-emerald-400"></span>
+        </div>
+        <div class="text-xs text-slate-400 mb-1">مانده بستانکاری شما</div>
+        <div id="d-balance" class="text-3xl font-extrabold text-white">۰ <span class="text-sm font-normal text-slate-400">تومان</span></div>
+      </div>
+
+      <!-- کارت‌های آماری -->
+      <div class="grid grid-cols-2 gap-3">
+        <div class="card rounded-xl p-3 text-center">
+          <div class="text-xs text-slate-400">طرح‌های اصلی</div>
+          <div id="d-orig-count" class="text-xl font-bold text-emerald-400 mt-1">۰</div>
+        </div>
+        <div class="card rounded-xl p-3 text-center">
+          <div class="text-xs text-slate-400">طرح‌های تکرار</div>
+          <div id="d-rep-count" class="text-xl font-bold text-amber-400 mt-1">۰</div>
+        </div>
+        <div class="card rounded-xl p-3 text-center">
+          <div class="text-xs text-slate-400">کل کارکرد</div>
+          <div id="d-total-earned" class="text-sm font-bold text-slate-200 mt-1">۰ ت</div>
+        </div>
+        <div class="card rounded-xl p-3 text-center">
+          <div class="text-xs text-slate-400">مجموع دریافتی</div>
+          <div id="d-total-paid" class="text-sm font-bold text-slate-200 mt-1">۰ ت</div>
+        </div>
+      </div>
+
+      <!-- لیست طرح‌های طراح -->
+      <div class="card rounded-2xl p-4">
+        <h3 class="text-sm font-bold mb-3 flex items-center gap-2">
+          <span>🎨</span> لیست طرح‌های شما
+        </h3>
+        <div id="d-tasks-list" class="space-y-2 text-xs"></div>
+      </div>
+    </div>
+
+    <!-- ۲. پنل مدیر -->
+    <div id="admin-view" class="hidden space-y-4">
+      <div class="card rounded-2xl p-5 shadow-lg border-t-2 border-blue-500">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-xs text-slate-400">کارتابل مدیریت استودیو</span>
+          <span class="text-xs bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full">مدیر ارشد</span>
+        </div>
+        <div class="text-xs text-slate-400 mb-1">مجموع بدهی جاری به طراحان</div>
+        <div id="adm-total-debt" class="text-3xl font-extrabold text-white">۰ <span class="text-sm font-normal text-slate-400">تومان</span></div>
+      </div>
+
+      <!-- لیست گرافیست‌ها برای مدیر -->
+      <div class="card rounded-2xl p-4">
+        <h3 class="text-sm font-bold mb-3 flex items-center gap-2">
+          <span>👥</span> وضعیت مالی همکاران
+        </h3>
+        <div id="adm-designers-list" class="space-y-3"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const tg = window.Telegram?.WebApp;
+    if (tg) { tg.expand(); tg.ready(); }
+
+    const SUPABASE_API = "https://dmwhshwuhorcooeqarui.supabase.co/functions/v1/super-responder";
+    const user = tg?.initDataUnsafe?.user || { id: 83013720, first_name: "مدیر" };
+
+    async function loadData() {
+      try {
+        const res = await fetch(`${SUPABASE_API}?user_id=${user.id}`);
+        const data = await res.json();
+        document.getElementById("loading").classList.add("hidden");
+
+        if (data.role === "admin") {
+          renderAdmin(data);
+        } else {
+          renderDesigner(data);
+        }
+      } catch (e) {
+        document.getElementById("loading").innerHTML = `<p class="text-red-400 text-xs">خطا در برقراری ارتباط با سرور</p>`;
+      }
+    }
+
+    function renderDesigner(data) {
+      document.getElementById("designer-view").classList.remove("hidden");
+      document.getElementById("d-name").innerText = data.designer.first_name;
+      document.getElementById("d-balance").innerHTML = `${data.balance.toLocaleString("fa-IR")} <span class="text-sm font-normal text-slate-400">تومان</span>`;
+      document.getElementById("d-orig-count").innerText = data.orig_count;
+      document.getElementById("d-rep-count").innerText = data.rep_count;
+      document.getElementById("d-total-earned").innerText = `${data.total_earned.toLocaleString("fa-IR")} ت`;
+      document.getElementById("d-total-paid").innerText = `${data.total_paid.toLocaleString("fa-IR")} ت`;
+
+      const list = document.getElementById("d-tasks-list");
+      list.innerHTML = data.tasks.map(t => {
+        let badge = `<span class="bg-slate-700 text-slate-300 px-2 py-0.5 rounded">در انتظار</span>`;
+        if (t.status === "approved_original") badge = `<span class="bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded">اصلی</span>`;
+        if (t.status === "approved_repeat") badge = `<span class="bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded">تکرار</span>`;
+        if (t.status === "rejected") badge = `<span class="bg-red-500/20 text-red-300 px-2 py-0.5 rounded">تغییرات</span>`;
+
+        return `<div class="flex justify-between items-center p-2 rounded-lg bg-slate-800/50">
+          <div>
+            <span class="font-bold text-slate-200">طرح #${t.task_number}</span>
+            <span class="text-slate-400 text-[10px] mr-2">${t.chat_title || 'استودیو'}</span>
+          </div>
+          <div>${badge}</div>
+        </div>`;
+      }).join("") || '<p class="text-slate-500 text-center py-4">هنوز طرحی ثبت نشده است.</p>';
+    }
+
+    function renderAdmin(data) {
+      document.getElementById("admin-view").classList.remove("hidden");
+      document.getElementById("adm-total-debt").innerHTML = `${data.total_studio_debt.toLocaleString("fa-IR")} <span class="text-sm font-normal text-slate-400">تومان</span>`;
+
+      const list = document.getElementById("adm-designers-list");
+      list.innerHTML = data.designers.map(d => `
+        <div class="p-3 rounded-xl bg-slate-800/60 border border-slate-700/50 flex justify-between items-center">
+          <div>
+            <div class="font-bold text-sm text-slate-200">${d.first_name} <span class="text-[10px] text-slate-400">(@${d.username || 'بدون یوزرنیم'})</span></div>
+            <div class="text-[11px] text-slate-400 mt-0.5">اصلی: ${d.orig_count} | تکرار: ${d.rep_count}</div>
+          </div>
+          <div class="text-left">
+            <div class="text-xs text-slate-400">مانده طلب</div>
+            <div class="text-sm font-bold text-emerald-400">${d.balance.toLocaleString("fa-IR")} ت</div>
+          </div>
+        </div>
+      `).join("") || '<p class="text-slate-500 text-center py-4">طراحی یافت نشد.</p>';
+    }
+
+    loadData();
+  </script>
+</body>
+</html>
