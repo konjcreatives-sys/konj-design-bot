@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>استودیو کنج - حسابداری</title>
+  <title>استودیو کنج - مدیریت حسابداری</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
@@ -21,11 +21,11 @@
       <p class="text-slate-400 text-xs font-medium">در حال اتصال به دیتابیس استودیو کنج...</p>
     </div>
 
-    <!-- پیام خطا در صورت بروز مشکل اینترنت -->
+    <!-- خطای اتصال -->
     <div id="error-box" class="hidden card rounded-2xl p-6 text-center space-y-3 border-red-500/40">
       <div class="text-2xl">⚠️</div>
       <div id="error-msg" class="text-red-400 text-xs leading-relaxed"></div>
-      <button onclick="loadData()" class="bg-slate-700 hover:bg-slate-600 text-white text-xs px-4 py-2 rounded-xl">تلاش مجدد</button>
+      <button onclick="loadData()" class="bg-slate-700 hover:bg-slate-600 text-white text-xs px-4 py-2 rounded-xl font-bold">تلاش مجدد</button>
     </div>
 
     <!-- ۱. پنل گرافیست -->
@@ -58,9 +58,8 @@
         </div>
       </div>
 
-      <!-- لیست طرح‌های طراح به تفکیک پروژه -->
       <div class="card rounded-2xl p-4 space-y-3">
-        <h3 class="text-xs font-bold flex items-center gap-2"><span>🎨</span> طرح‌های ارسالی شما به تفکیک پروژه</h3>
+        <h3 class="text-xs font-bold flex items-center gap-2"><span>🎨</span> طرح‌های شما (تفکیک گروه و تاپیک)</h3>
         <div id="d-projects-container" class="space-y-4 text-xs"></div>
       </div>
     </div>
@@ -69,7 +68,7 @@
     <div id="admin-view" class="hidden space-y-4">
       <div class="card rounded-2xl p-5 shadow-lg border-t-2 border-blue-500">
         <div class="flex justify-between items-center mb-2">
-          <span class="text-xs text-slate-400">کارتابل مدیریت استودیو</span>
+          <span class="text-xs text-slate-400">کارتابل مدیریت استودیو کنج</span>
           <span class="text-xs bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full font-bold">مدیر ارشد</span>
         </div>
         <div class="text-xs text-slate-400 mb-1">مجموع بدهی جاری به طراحان</div>
@@ -96,17 +95,17 @@
           <div class="text-xs text-slate-300 mt-2">مانده طلب: <b id="modal-designer-balance" class="text-emerald-400 text-sm"></b></div>
         </div>
 
-        <!-- ۱. تنظیم کاملاً دستی تعرفه‌ها -->
+        <!-- ۱. تنظیم دستی تعرفه‌ها -->
         <div class="card rounded-2xl p-4 space-y-3">
           <h4 class="text-xs font-bold text-slate-200 flex items-center gap-1"><span>⚙️</span> تنظیم دستی تعرفه طراح (تومان)</h4>
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="text-[10px] text-slate-400">طرح اصلی:</label>
-              <input id="modal-rate-orig" type="number" class="w-full text-xs p-2.5 rounded-xl text-white mt-1 focus:ring-1 focus:ring-blue-500" />
+              <input id="modal-rate-orig" type="number" class="w-full text-xs p-2.5 rounded-xl text-white mt-1" />
             </div>
             <div>
               <label class="text-[10px] text-slate-400">طرح تکرار/ادیت:</label>
-              <input id="modal-rate-rep" type="number" class="w-full text-xs p-2.5 rounded-xl text-white mt-1 focus:ring-1 focus:ring-blue-500" />
+              <input id="modal-rate-rep" type="number" class="w-full text-xs p-2.5 rounded-xl text-white mt-1" />
             </div>
           </div>
           <button onclick="saveRates()" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs py-2.5 rounded-xl font-bold transition">
@@ -118,7 +117,7 @@
         <div class="card rounded-2xl p-4 space-y-3">
           <h4 class="text-xs font-bold text-slate-200 flex items-center gap-1"><span>💳</span> ثبت واریزی و تسویه حساب</h4>
           <div>
-            <label class="text-[10px] text-slate-400">مبلغ واریزی به تومان (قابل ویرایش دستی):</label>
+            <label class="text-[10px] text-slate-400">مبلغ واریزی به تومان:</label>
             <input id="modal-pay-amount" type="number" placeholder="مثال: 1500000" class="w-full text-xs p-2.5 rounded-xl text-white mt-1" />
           </div>
           <div>
@@ -130,10 +129,22 @@
           </button>
         </div>
 
-        <!-- ۳. لیست طرح‌ها تفکیک‌شده بر اساس پروژه و تغییر وضعیت با دکمه -->
+        <!-- ۳. تب‌های مدیریت طرح‌ها (فعال / بایگانی رد شده‌ها) -->
         <div class="card rounded-2xl p-4 space-y-3">
-          <h4 class="text-xs font-bold text-slate-200 flex items-center gap-1"><span>🎨</span> طرح‌ها بر اساس پروژه (تغییر وضعیت با ۱ کلیک)</h4>
-          <div id="modal-projects-container" class="space-y-4 text-xs"></div>
+          <div class="flex gap-2 p-1 bg-slate-800/90 rounded-xl">
+            <button id="tab-active-btn" onclick="switchTaskTab('active')" class="flex-1 py-2 text-xs font-bold rounded-lg bg-blue-600 text-white transition">
+              🟢 طرح‌های فعال (<span id="active-tasks-count">۰</span>)
+            </button>
+            <button id="tab-archive-btn" onclick="switchTaskTab('archive')" class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition">
+              📦 بایگانی رد شده‌ها (<span id="archive-tasks-count">۰</span>)
+            </button>
+          </div>
+
+          <!-- کانتینر طرح‌های فعال -->
+          <div id="modal-active-tasks" class="space-y-4 text-xs pt-1"></div>
+
+          <!-- کانتینر بایگانی طرح‌های رد شده -->
+          <div id="modal-archive-tasks" class="hidden space-y-4 text-xs pt-1"></div>
         </div>
       </div>
     </div>
@@ -144,13 +155,31 @@
     if (tg) { tg.expand(); tg.ready(); }
 
     const SUPABASE_API = "https://dmwhshwuhorcooeqarui.supabase.co/functions/v1/super-responder";
-    
-    // دریافت آیدی کاربر از تلگرام یا پارامتر URL
     const urlParams = new URLSearchParams(window.location.search);
     const userId = tg?.initDataUnsafe?.user?.id || Number(urlParams.get("user_id")) || 83013720;
     
     let currentData = null;
     let selectedDesignerId = null;
+    let currentTaskTab = "active";
+
+    // ساخت لینک تلگرام برای پرش مستقیم به پیام فایل
+    function getTelegramMessageLink(t) {
+      if (!t.chat_id || !t.message_id) return null;
+      const cleanChatId = String(t.chat_id).replace("-100", "");
+      if (t.thread_id) {
+        return `https://t.me/c/${cleanChatId}/${t.thread_id}/${t.message_id}`;
+      }
+      return `https://t.me/c/${cleanChatId}/${t.message_id}`;
+    }
+
+    // باز کردن لینک تلگرام در اپلیکیشن
+    function openTelegramMessage(url) {
+      if (tg?.openTelegramLink) {
+        tg.openTelegramLink(url);
+      } else {
+        window.open(url, "_blank");
+      }
+    }
 
     async function loadData() {
       document.getElementById("loading").classList.remove("hidden");
@@ -174,7 +203,6 @@
       }
     }
 
-    // رندر نمای گرافیست
     function renderDesigner() {
       const data = currentData;
       document.getElementById("designer-view").classList.remove("hidden");
@@ -188,7 +216,6 @@
       renderGroupedTasks(data.tasks, "d-projects-container", false);
     }
 
-    // رندر نمای مدیر
     function renderAdmin() {
       document.getElementById("admin-view").classList.remove("hidden");
       document.getElementById("adm-total-debt").innerHTML = `${currentData.total_studio_debt.toLocaleString("fa-IR")} <span class="text-sm font-normal text-slate-400">تومان</span>`;
@@ -227,7 +254,16 @@
       document.getElementById("modal-rate-rep").value = d.rate_repeat || 100000;
       document.getElementById("modal-pay-amount").value = d.balance > 0 ? d.balance : "";
 
-      renderGroupedTasks(d.tasks || [], "modal-projects-container", true);
+      const allTasks = d.tasks || [];
+      const activeTasks = allTasks.filter(t => t.status !== "rejected");
+      const archiveTasks = allTasks.filter(t => t.status === "rejected");
+
+      document.getElementById("active-tasks-count").innerText = activeTasks.length;
+      document.getElementById("archive-tasks-count").innerText = archiveTasks.length;
+
+      renderGroupedTasks(activeTasks, "modal-active-tasks", true);
+      renderGroupedTasks(archiveTasks, "modal-archive-tasks", true);
+      switchTaskTab(currentTaskTab);
     }
 
     function closeDesignerModal() {
@@ -236,28 +272,51 @@
       selectedDesignerId = null;
     }
 
-    // تابع رندر طرح‌ها دسته‌بندی شده بر اساس پروژه
+    function switchTaskTab(tab) {
+      currentTaskTab = tab;
+      const activeBtn = document.getElementById("tab-active-btn");
+      const archiveBtn = document.getElementById("tab-archive-btn");
+      const activeContainer = document.getElementById("modal-active-tasks");
+      const archiveContainer = document.getElementById("modal-archive-tasks");
+
+      if (tab === "active") {
+        activeBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-blue-600 text-white transition";
+        archiveBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition";
+        activeContainer.classList.remove("hidden");
+        archiveContainer.classList.add("hidden");
+      } else {
+        archiveBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-red-600 text-white transition";
+        activeBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition";
+        archiveContainer.classList.remove("hidden");
+        activeContainer.classList.add("hidden");
+      }
+    }
+
+    // رندر طرح‌ها دسته‌بندی‌شده بر اساس گروه ❯ تاپیک به همراه دکمه تلگرام
     function renderGroupedTasks(tasks, containerId, isAdmin) {
       const container = document.getElementById(containerId);
       if (!tasks || tasks.length === 0) {
-        container.innerHTML = '<p class="text-slate-500 text-center py-4">هنوز طرحی ثبت نشده است.</p>';
+        container.innerHTML = '<p class="text-slate-500 text-center py-5">هیچ طرحی در این بخش وجود ندارد.</p>';
         return;
       }
 
-      // گروه بندی طرح ها بر اساس chat_title (پروژه/برند)
+      // گروه بندی ۲ لایه: گروه ❯ تاپیک
       const groups = {};
       tasks.forEach(t => {
-        const proj = t.chat_title || "پروژه‌های استودیو";
-        if (!groups[proj]) groups[proj] = [];
-        groups[proj].push(t);
+        const groupTitle = t.chat_title || "گروه استودیو";
+        const topicTitle = t.topic_name || (t.thread_id ? `تاپیک #${t.thread_id}` : "عمومی");
+        const fullHeader = `📁 ${groupTitle} ❯ 🏷️ ${topicTitle}`;
+
+        if (!groups[fullHeader]) groups[fullHeader] = [];
+        groups[fullHeader].push(t);
       });
 
       let html = "";
-      for (const [proj, pTasks] of Object.entries(groups)) {
+      for (const [header, pTasks] of Object.entries(groups)) {
         html += `
           <div class="space-y-2">
             <div class="text-[11px] font-bold text-amber-400 bg-amber-500/10 px-3 py-1.5 rounded-lg flex justify-between items-center">
-              <span>📁 پروژه: ${proj}</span>
+              <span>${header}</span>
               <span class="text-[10px] text-slate-400">${pTasks.length} طرح</span>
             </div>
             <div class="space-y-2">
@@ -267,13 +326,17 @@
           const isOrig = t.status === "approved_original";
           const isRep = t.status === "approved_repeat";
           const isRej = t.status === "rejected";
+          const tgLink = getTelegramMessageLink(t);
 
           if (isAdmin) {
             html += `
               <div class="p-3 rounded-xl bg-slate-800/80 border border-slate-700/70 space-y-2">
                 <div class="flex justify-between items-center">
                   <span class="font-bold text-slate-200">طرح شماره #${t.task_number || 1}</span>
-                  <span class="text-[10px] text-slate-400">${new Date(t.created_at).toLocaleDateString('fa-IR')}</span>
+                  <div class="flex items-center gap-2">
+                    ${tgLink ? `<button onclick="openTelegramMessage('${tgLink}')" class="text-[10px] bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 px-2 py-1 rounded-lg font-bold">↗️ مشاهده طرح در تلگرام</button>` : ''}
+                    <span class="text-[10px] text-slate-400">${new Date(t.created_at).toLocaleDateString('fa-IR')}</span>
+                  </div>
                 </div>
                 <div class="grid grid-cols-3 gap-1.5 pt-1">
                   <button onclick="changeTaskStatus('${t.id}', 'orig')" class="py-1.5 px-1 rounded-lg font-bold text-[11px] transition ${isOrig ? 'bg-emerald-600 text-white shadow' : 'bg-slate-700/60 text-slate-300'}">
@@ -292,11 +355,14 @@
             let badge = `<span class="bg-slate-700 text-slate-300 px-2.5 py-0.5 rounded-full text-[10px]">در انتظار</span>`;
             if (isOrig) badge = `<span class="bg-emerald-500/20 text-emerald-300 px-2.5 py-0.5 rounded-full text-[10px] font-bold">اصلی</span>`;
             if (isRep) badge = `<span class="bg-amber-500/20 text-amber-300 px-2.5 py-0.5 rounded-full text-[10px] font-bold">تکرار</span>`;
-            if (isRej) badge = `<span class="bg-red-500/20 text-red-300 px-2.5 py-0.5 rounded-full text-[10px] font-bold">تغییرات</span>`;
+            if (isRej) badge = `<span class="bg-red-500/20 text-red-300 px-2.5 py-0.5 rounded-full text-[10px] font-bold">نیاز به تغییرات</span>`;
 
             html += `
               <div class="flex justify-between items-center p-2.5 rounded-xl bg-slate-800/50">
-                <span class="font-bold text-slate-200">طرح شماره #${t.task_number || 1}</span>
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-slate-200">طرح شماره #${t.task_number || 1}</span>
+                  ${tgLink ? `<button onclick="openTelegramMessage('${tgLink}')" class="text-[10px] text-blue-400 underline mr-2 font-medium">↗️ فایل در تلگرام</button>` : ''}
+                </div>
                 <div>${badge}</div>
               </div>
             `;
