@@ -140,10 +140,7 @@
             </button>
           </div>
 
-          <!-- کانتینر طرح‌های فعال -->
           <div id="modal-active-tasks" class="space-y-4 text-xs pt-1"></div>
-
-          <!-- کانتینر بایگانی طرح‌های رد شده -->
           <div id="modal-archive-tasks" class="hidden space-y-4 text-xs pt-1"></div>
         </div>
       </div>
@@ -162,7 +159,6 @@
     let selectedDesignerId = null;
     let currentTaskTab = "active";
 
-    // ساخت لینک تلگرام برای پرش مستقیم به پیام فایل
     function getTelegramMessageLink(t) {
       if (!t.chat_id || !t.message_id) return null;
       const cleanChatId = String(t.chat_id).replace("-100", "");
@@ -172,7 +168,6 @@
       return `https://t.me/c/${cleanChatId}/${t.message_id}`;
     }
 
-    // باز کردن لینک تلگرام در اپلیکیشن
     function openTelegramMessage(url) {
       if (tg?.openTelegramLink) {
         tg.openTelegramLink(url);
@@ -292,7 +287,23 @@
       }
     }
 
-    // رندر طرح‌ها دسته‌بندی‌شده بر اساس گروه ❯ تاپیک به همراه دکمه تلگرام
+    // تغییر نام دستی تاپیک از داخل مینی‌اپ
+    async function editTopicName(chatId, threadId, currentName) {
+      if (!threadId) return alert("این بخش در تاپیک عمومی ثبت شده است.");
+      const promptName = currentName.replace("تاپیک #", "").replace("تاپیک ", "");
+      const newName = prompt("نام دلخواه برای این تاپیک/پروژه را وارد کنید:", promptName);
+      if (!newName || newName.trim() === "") return;
+
+      await fetch(SUPABASE_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "update_topic_name", chat_id: chatId, thread_id: threadId, topic_name: newName.trim(), admin_id: userId }),
+      });
+      alert(`نام تاپیک به «${newName.trim()}» تغییر یافت.`);
+      await loadData();
+      if (selectedDesignerId) openDesignerModal(selectedDesignerId);
+    }
+
     function renderGroupedTasks(tasks, containerId, isAdmin) {
       const container = document.getElementById(containerId);
       if (!tasks || tasks.length === 0) {
@@ -300,29 +311,41 @@
         return;
       }
 
-      // گروه بندی ۲ لایه: گروه ❯ تاپیک
       const groups = {};
       tasks.forEach(t => {
         const groupTitle = t.chat_title || "گروه استودیو";
         const topicTitle = t.topic_name || (t.thread_id ? `تاپیک #${t.thread_id}` : "عمومی");
-        const fullHeader = `📁 ${groupTitle} ❯ 🏷️ ${topicTitle}`;
+        const key = `${t.chat_id}_${t.thread_id || 0}`;
 
-        if (!groups[fullHeader]) groups[fullHeader] = [];
-        groups[fullHeader].push(t);
+        if (!groups[key]) {
+          groups[key] = {
+            chatId: t.chat_id,
+            threadId: t.thread_id,
+            groupTitle,
+            topicTitle,
+            items: []
+          };
+        }
+        groups[key].items.push(t);
       });
 
       let html = "";
-      for (const [header, pTasks] of Object.entries(groups)) {
+      for (const [key, g] of Object.entries(groups)) {
         html += `
           <div class="space-y-2">
-            <div class="text-[11px] font-bold text-amber-400 bg-amber-500/10 px-3 py-1.5 rounded-lg flex justify-between items-center">
-              <span>${header}</span>
-              <span class="text-[10px] text-slate-400">${pTasks.length} طرح</span>
+            <div class="text-[11px] font-bold text-amber-400 bg-amber-500/10 px-3 py-2 rounded-xl flex justify-between items-center">
+              <div>
+                <span>📁 ${g.groupTitle} ❯ 🏷️ ${g.topicTitle}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                ${isAdmin && g.threadId ? `<button onclick="editTopicName(${g.chatId}, ${g.threadId}, '${g.topicTitle}')" class="text-[10px] bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 px-2 py-0.5 rounded-lg font-bold">✏️ نام تاپیک</button>` : ''}
+                <span class="text-[10px] text-slate-400">${g.items.length} طرح</span>
+              </div>
             </div>
             <div class="space-y-2">
         `;
 
-        pTasks.forEach(t => {
+        g.items.forEach(t => {
           const isOrig = t.status === "approved_original";
           const isRep = t.status === "approved_repeat";
           const isRej = t.status === "rejected";
