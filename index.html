@@ -10,7 +10,7 @@
   <style>
     body { font-family: Vazirmatn, sans-serif; background-color: #0b1120; color: #f8fafc; }
     .card { background: rgba(30, 41, 59, 0.75); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
-    input { background: rgba(15, 23, 42, 0.9) !important; border: 1px solid rgba(255, 255, 255, 0.18) !important; }
+    input, select { background: rgba(15, 23, 42, 0.9) !important; border: 1px solid rgba(255, 255, 255, 0.18) !important; }
   </style>
 </head>
 <body class="p-4 min-h-screen pb-28">
@@ -18,7 +18,7 @@
     <!-- لودینگ -->
     <div id="loading" class="text-center py-24 space-y-3">
       <div class="inline-block animate-spin rounded-full h-9 w-9 border-t-2 border-b-2 border-emerald-400"></div>
-      <p class="text-slate-400 text-xs font-medium">در حال اتصال به دیتابیس استودیو کنج...</p>
+      <p class="text-slate-400 text-xs font-medium">در حال بارگذاری سیستم حسابداری استودیو کنج...</p>
     </div>
 
     <!-- خطای اتصال -->
@@ -30,12 +30,20 @@
 
     <!-- ۱. پنل گرافیست -->
     <div id="designer-view" class="hidden space-y-4">
+      <!-- فیلتر دوره مالی برای گرافیست -->
+      <div class="card rounded-2xl p-3 flex justify-between items-center">
+        <span class="text-xs text-slate-300 font-bold">📅 دوره مالی:</span>
+        <select id="designer-period-select" onchange="onDesignerPeriodChange()" class="text-xs p-2 rounded-xl text-white outline-none">
+          <option value="all">📊 کل سوابق (همه دوره‌ها)</option>
+        </select>
+      </div>
+
       <div class="card rounded-2xl p-5 shadow-lg border-t-2 border-emerald-500">
         <div class="flex justify-between items-center mb-2">
           <span class="text-xs text-slate-400">صورت‌حساب طراح</span>
           <span id="d-name" class="text-sm font-bold text-emerald-400"></span>
         </div>
-        <div class="text-xs text-slate-400 mb-1">مانده بستانکاری شما</div>
+        <div class="text-xs text-slate-400 mb-1">مانده بستانکاری (دوره انتخابی)</div>
         <div id="d-balance" class="text-3xl font-extrabold text-white">۰ <span class="text-sm font-normal text-slate-400">تومان</span></div>
       </div>
 
@@ -49,18 +57,23 @@
           <div id="d-rep-count" class="text-xl font-bold text-amber-400 mt-1">۰</div>
         </div>
         <div class="card rounded-xl p-3 text-center">
-          <div class="text-[11px] text-slate-400">کل کارکرد</div>
+          <div class="text-[11px] text-slate-400">کل کارکرد دوره</div>
           <div id="d-total-earned" class="text-sm font-bold text-slate-200 mt-1">۰ ت</div>
         </div>
         <div class="card rounded-xl p-3 text-center">
-          <div class="text-[11px] text-slate-400">مجموع دریافتی</div>
+          <div class="text-[11px] text-slate-400">مجموع دریافتی دوره</div>
           <div id="d-total-paid" class="text-sm font-bold text-slate-200 mt-1">۰ ت</div>
         </div>
       </div>
 
+      <!-- تب‌های نمایش طرح‌ها و اسناد دریافتی برای گرافیست -->
       <div class="card rounded-2xl p-4 space-y-3">
-        <h3 class="text-xs font-bold flex items-center gap-2"><span>🎨</span> طرح‌های شما (تفکیک گروه و تاپیک)</h3>
-        <div id="d-projects-container" class="space-y-4 text-xs"></div>
+        <div class="flex gap-2 p-1 bg-slate-800/90 rounded-xl text-xs">
+          <button id="d-tab-tasks-btn" onclick="switchDesignerTab('tasks')" class="flex-1 py-2 font-bold rounded-lg bg-emerald-600 text-white">🎨 طرح‌های دوره</button>
+          <button id="d-tab-pays-btn" onclick="switchDesignerTab('pays')" class="flex-1 py-2 font-bold rounded-lg text-slate-400 hover:text-white">💳 اسناد پرداختی</button>
+        </div>
+        <div id="d-tasks-container" class="space-y-3 text-xs pt-1"></div>
+        <div id="d-pays-container" class="hidden space-y-2 text-xs pt-1"></div>
       </div>
     </div>
 
@@ -77,7 +90,7 @@
 
       <!-- لیست همکاران -->
       <div id="adm-list-container" class="card rounded-2xl p-4 space-y-3">
-        <h3 class="text-xs font-bold text-slate-300">👥 لیست طراحان (جهت مدیریت طرح‌ها و تسویه کلیک کنید):</h3>
+        <h3 class="text-xs font-bold text-slate-300">👥 لیست طراحان (جهت حسابداری و تسویه کلیک کنید):</h3>
         <div id="adm-designers-list" class="space-y-2.5"></div>
       </div>
 
@@ -87,61 +100,112 @@
           ← بازگشت به لیست همکاران
         </button>
 
-        <div class="card rounded-2xl p-4 border border-blue-500/30">
-          <div class="flex justify-between items-center mb-1">
-            <h2 id="modal-designer-name" class="font-extrabold text-base text-white"></h2>
-            <span id="modal-designer-user" class="text-xs text-slate-400"></span>
-          </div>
-          <div class="text-xs text-slate-300 mt-2">مانده طلب: <b id="modal-designer-balance" class="text-emerald-400 text-sm"></b></div>
-        </div>
-
-        <!-- ۱. تنظیم دستی تعرفه‌ها -->
-        <div class="card rounded-2xl p-4 space-y-3">
-          <h4 class="text-xs font-bold text-slate-200 flex items-center gap-1"><span>⚙️</span> تنظیم دستی تعرفه طراح (تومان)</h4>
-          <div class="grid grid-cols-2 gap-2">
+        <!-- هدر کارت طراح + فیلتر ماه/سال دوره مالی -->
+        <div class="card rounded-2xl p-4 border border-blue-500/30 space-y-3">
+          <div class="flex justify-between items-center">
             <div>
-              <label class="text-[10px] text-slate-400">طرح اصلی:</label>
-              <input id="modal-rate-orig" type="number" class="w-full text-xs p-2.5 rounded-xl text-white mt-1" />
+              <h2 id="modal-designer-name" class="font-extrabold text-base text-white"></h2>
+              <span id="modal-designer-user" class="text-xs text-slate-400"></span>
             </div>
-            <div>
-              <label class="text-[10px] text-slate-400">طرح تکرار/ادیت:</label>
-              <input id="modal-rate-rep" type="number" class="w-full text-xs p-2.5 rounded-xl text-white mt-1" />
+            <div class="text-left">
+              <div class="text-[10px] text-slate-400">مانده دوره انتخابی:</div>
+              <div id="modal-designer-balance" class="text-emerald-400 font-extrabold text-sm">۰ ت</div>
             </div>
           </div>
-          <button onclick="saveRates()" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs py-2.5 rounded-xl font-bold transition">
-            💾 ذخیره دستی تعرفه‌ها
-          </button>
+
+          <!-- فیلتر دوره مالی طراح -->
+          <div class="pt-2 border-t border-slate-700/60 flex items-center justify-between">
+            <label class="text-xs font-bold text-amber-400">📅 فیلتر دوره مالی:</label>
+            <select id="modal-period-select" onchange="onAdminPeriodChange()" class="text-xs p-2 rounded-xl text-white outline-none">
+              <option value="all">📊 کل سوابق (همه دوره‌ها)</option>
+            </select>
+          </div>
         </div>
 
-        <!-- ۲. ثبت دستی تسویه حساب -->
-        <div class="card rounded-2xl p-4 space-y-3">
-          <h4 class="text-xs font-bold text-slate-200 flex items-center gap-1"><span>💳</span> ثبت واریزی و تسویه حساب</h4>
-          <div>
-            <label class="text-[10px] text-slate-400">مبلغ واریزی به تومان:</label>
-            <input id="modal-pay-amount" type="number" placeholder="مثال: 1500000" class="w-full text-xs p-2.5 rounded-xl text-white mt-1" />
-          </div>
-          <div>
-            <label class="text-[10px] text-slate-400">بابت / توضیحات:</label>
-            <input id="modal-pay-desc" type="text" placeholder="تسویه پروژه..." class="w-full text-xs p-2.5 rounded-xl text-white mt-1" />
-          </div>
-          <button onclick="submitPayment()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs py-2.5 rounded-xl font-bold transition">
-            ✅ ثبت پرداخت و کسر از بدهی
-          </button>
+        <!-- تب‌های ۳ گانه مدیر: ۱. طرح‌ها ۲. اسناد حسابداری ۳. تعرفه‌ها -->
+        <div class="flex gap-1.5 p-1 bg-slate-800/90 rounded-xl text-xs">
+          <button id="adm-tab-tasks-btn" onclick="switchAdminMainTab('tasks')" class="flex-1 py-2 font-bold rounded-lg bg-blue-600 text-white">🎨 طرح‌ها</button>
+          <button id="adm-tab-acc-btn" onclick="switchAdminMainTab('acc')" class="flex-1 py-2 font-bold rounded-lg text-slate-400 hover:text-white">💳 حسابداری و اسناد</button>
+          <button id="adm-tab-rate-btn" onclick="switchAdminMainTab('rate')" class="flex-1 py-2 font-bold rounded-lg text-slate-400 hover:text-white">⚙️ تعرفه</button>
         </div>
 
-        <!-- ۳. تب‌های مدیریت طرح‌ها (فعال / بایگانی رد شده‌ها) -->
-        <div class="card rounded-2xl p-4 space-y-3">
-          <div class="flex gap-2 p-1 bg-slate-800/90 rounded-xl">
-            <button id="tab-active-btn" onclick="switchTaskTab('active')" class="flex-1 py-2 text-xs font-bold rounded-lg bg-blue-600 text-white transition">
-              🟢 طرح‌های فعال (<span id="active-tasks-count">۰</span>)
-            </button>
-            <button id="tab-archive-btn" onclick="switchTaskTab('archive')" class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition">
-              📦 بایگانی رد شده‌ها (<span id="archive-tasks-count">۰</span>)
+        <!-- تب ۱: طرح‌ها و پروژه‌ها -->
+        <div id="adm-section-tasks" class="space-y-4">
+          <div class="card rounded-2xl p-4 space-y-3">
+            <div class="flex gap-2 p-1 bg-slate-800/90 rounded-xl">
+              <button id="tab-active-btn" onclick="switchTaskTab('active')" class="flex-1 py-1.5 text-xs font-bold rounded-lg bg-blue-600 text-white transition">
+                🟢 طرح‌های فعال (<span id="active-tasks-count">۰</span>)
+              </button>
+              <button id="tab-archive-btn" onclick="switchTaskTab('archive')" class="flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition">
+                📦 بایگانی رد شده‌ها (<span id="archive-tasks-count">۰</span>)
+              </button>
+            </div>
+            <div id="modal-active-tasks" class="space-y-4 text-xs pt-1"></div>
+            <div id="modal-archive-tasks" class="hidden space-y-4 text-xs pt-1"></div>
+          </div>
+        </div>
+
+        <!-- تب ۲: اسناد حسابداری و تسویه‌ها (با امکان حذف و ویرایش) -->
+        <div id="adm-section-acc" class="hidden space-y-4">
+          <!-- فرم صدور سند پرداخت جدید -->
+          <div class="card rounded-2xl p-4 space-y-3 border-t-2 border-emerald-500">
+            <h4 class="text-xs font-bold text-slate-200 flex items-center gap-1"><span>💳</span> صدور سند واریزی / تسویه جدید</h4>
+            
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="text-[10px] text-slate-400">مبلغ واریزی (تومان):</label>
+                <input id="modal-pay-amount" type="number" placeholder="مثال: 1500000" class="w-full text-xs p-2.5 rounded-xl text-white mt-1" />
+              </div>
+              <div>
+                <label class="text-[10px] text-slate-400">مربوط به دوره مالی:</label>
+                <select id="modal-pay-period-select" class="w-full text-xs p-2.5 rounded-xl text-white mt-1 outline-none"></select>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="text-[10px] text-slate-400">تاریخ واقعی پرداخت:</label>
+                <input id="modal-pay-date" type="text" placeholder="مثال: ۷ شهریور ۱۴۰۵" class="w-full text-xs p-2.5 rounded-xl text-white mt-1" />
+              </div>
+              <div>
+                <label class="text-[10px] text-slate-400">توضیحات سند:</label>
+                <input id="modal-pay-desc" type="text" placeholder="تسویه حساب..." class="w-full text-xs p-2.5 rounded-xl text-white mt-1" />
+              </div>
+            </div>
+
+            <button onclick="submitPayment()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs py-2.5 rounded-xl font-bold transition">
+              ✅ ثبت و صدور سند مالی
             </button>
           </div>
 
-          <div id="modal-active-tasks" class="space-y-4 text-xs pt-1"></div>
-          <div id="modal-archive-tasks" class="hidden space-y-4 text-xs pt-1"></div>
+          <!-- لیست اسناد مالی واریز شده -->
+          <div class="card rounded-2xl p-4 space-y-3">
+            <h4 class="text-xs font-bold text-slate-200 flex items-center justify-between">
+              <span>📋 لیست اسناد پرداختی طراح</span>
+              <span id="vouchers-count" class="text-[10px] text-slate-400">۰ سند</span>
+            </h4>
+            <div id="modal-vouchers-list" class="space-y-2.5 text-xs"></div>
+          </div>
+        </div>
+
+        <!-- تب ۳: تنظیم تعرفه‌ها -->
+        <div id="adm-section-rate" class="hidden space-y-4">
+          <div class="card rounded-2xl p-4 space-y-3">
+            <h4 class="text-xs font-bold text-slate-200 flex items-center gap-1"><span>⚙️</span> تنظیم دستی تعرفه طراح (تومان)</h4>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="text-[10px] text-slate-400">طرح اصلی:</label>
+                <input id="modal-rate-orig" type="number" class="w-full text-xs p-2.5 rounded-xl text-white mt-1" />
+              </div>
+              <div>
+                <label class="text-[10px] text-slate-400">طرح تکرار/ادیت:</label>
+                <input id="modal-rate-rep" type="number" class="w-full text-xs p-2.5 rounded-xl text-white mt-1" />
+              </div>
+            </div>
+            <button onclick="saveRates()" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs py-2.5 rounded-xl font-bold transition">
+              💾 ذخیره تعرفه‌ها
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -157,7 +221,25 @@
     
     let currentData = null;
     let selectedDesignerId = null;
+    let selectedPeriod = "all";
     let currentTaskTab = "active";
+
+    // نام ماه‌های شمسی
+    const persianMonths = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
+
+    function getPersianDateStr(d) {
+      if (!d) return "-";
+      return new Intl.DateTimeFormat('fa-IR-u-ca-persian', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(d));
+    }
+
+    function getPersianPeriod(d) {
+      if (!d) return "-";
+      return new Intl.DateTimeFormat('fa-IR-u-ca-persian', { year: 'numeric', month: 'long' }).format(new Date(d));
+    }
+
+    function getCurrentPersianPeriod() {
+      return new Intl.DateTimeFormat('fa-IR-u-ca-persian', { year: 'numeric', month: 'long' }).format(new Date());
+    }
 
     function getTelegramMessageLink(t) {
       if (!t.chat_id || !t.message_id) return null;
@@ -169,11 +251,8 @@
     }
 
     function openTelegramMessage(url) {
-      if (tg?.openTelegramLink) {
-        tg.openTelegramLink(url);
-      } else {
-        window.open(url, "_blank");
-      }
+      if (tg?.openTelegramLink) tg.openTelegramLink(url);
+      else window.open(url, "_blank");
     }
 
     async function loadData() {
@@ -189,6 +268,7 @@
         if (currentData.role === "admin") {
           renderAdmin();
         } else {
+          populateDesignerPeriodOptions();
           renderDesigner();
         }
       } catch (e) {
@@ -198,19 +278,98 @@
       }
     }
 
+    // تولید لیست دوره‌های مالی برای گرافیست
+    function populateDesignerPeriodOptions() {
+      const select = document.getElementById("designer-period-select");
+      const periods = new Set();
+      periods.add(getCurrentPersianPeriod());
+
+      currentData.tasks?.forEach(t => { if (t.period) periods.add(t.period); else if (t.created_at) periods.add(getPersianPeriod(t.created_at)); });
+      currentData.payments?.forEach(p => { if (p.period) periods.add(p.period); });
+
+      select.innerHTML = '<option value="all">📊 کل سوابق (همه دوره‌ها)</option>';
+      periods.forEach(p => {
+        select.innerHTML += `<option value="${p}">${p}</option>`;
+      });
+      select.value = selectedPeriod;
+    }
+
+    function onDesignerPeriodChange() {
+      selectedPeriod = document.getElementById("designer-period-select").value;
+      renderDesigner();
+    }
+
     function renderDesigner() {
       const data = currentData;
       document.getElementById("designer-view").classList.remove("hidden");
       document.getElementById("d-name").innerText = data.designer.first_name;
-      document.getElementById("d-balance").innerHTML = `${data.balance.toLocaleString("fa-IR")} <span class="text-sm font-normal text-slate-400">تومان</span>`;
-      document.getElementById("d-orig-count").innerText = data.orig_count;
-      document.getElementById("d-rep-count").innerText = data.rep_count;
-      document.getElementById("d-total-earned").innerText = `${data.total_earned.toLocaleString("fa-IR")} ت`;
-      document.getElementById("d-total-paid").innerText = `${data.total_paid.toLocaleString("fa-IR")} ت`;
 
-      renderGroupedTasks(data.tasks, "d-projects-container", false);
+      // فیلتر بر اساس دوره مالی
+      let filteredTasks = data.tasks || [];
+      let filteredPays = data.payments || [];
+
+      if (selectedPeriod !== "all") {
+        filteredTasks = filteredTasks.filter(t => (t.period || getPersianPeriod(t.created_at)) === selectedPeriod);
+        filteredPays = filteredPays.filter(p => (p.period || getPersianPeriod(p.payment_date || p.created_at)) === selectedPeriod);
+      }
+
+      let orig = 0, rep = 0, earned = 0;
+      filteredTasks.forEach(t => {
+        if (t.status === "approved_original") { orig++; earned += Number(t.amount || data.designer.rate_original || 200000); }
+        if (t.status === "approved_repeat") { rep++; earned += Number(t.amount || data.designer.rate_repeat || 100000); }
+      });
+
+      const paid = filteredPays.reduce((acc, p) => acc + Number(p.amount), 0);
+      const balance = earned - paid;
+
+      document.getElementById("d-balance").innerHTML = `${balance.toLocaleString("fa-IR")} <span class="text-sm font-normal text-slate-400">تومان</span>`;
+      document.getElementById("d-orig-count").innerText = orig;
+      document.getElementById("d-rep-count").innerText = rep;
+      document.getElementById("d-total-earned").innerText = `${earned.toLocaleString("fa-IR")} ت`;
+      document.getElementById("d-total-paid").innerText = `${paid.toLocaleString("fa-IR")} ت`;
+
+      renderGroupedTasks(filteredTasks, "d-tasks-container", false);
+      renderDesignerPayments(filteredPays);
     }
 
+    function renderDesignerPayments(pays) {
+      const container = document.getElementById("d-pays-container");
+      if (!pays || pays.length === 0) {
+        container.innerHTML = '<p class="text-slate-500 text-center py-4">سند پرداختی در این دوره ثبت نشده است.</p>';
+        return;
+      }
+
+      container.innerHTML = pays.map(p => `
+        <div class="p-3 rounded-xl bg-slate-800/80 border border-slate-700/60 flex justify-between items-center">
+          <div>
+            <div class="font-bold text-emerald-400">${Number(p.amount).toLocaleString('fa-IR')} تومان</div>
+            <div class="text-[10px] text-slate-400 mt-0.5">بابت دوره: <b class="text-amber-300">${p.period || '-'}</b> | تاریخ پرداخت: ${getPersianDateStr(p.payment_date || p.created_at)}</div>
+            ${p.description ? `<div class="text-[10px] text-slate-400 mt-0.5">توضیح: ${p.description}</div>` : ''}
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function switchDesignerTab(tab) {
+      const tasksBtn = document.getElementById("d-tab-tasks-btn");
+      const paysBtn = document.getElementById("d-tab-pays-btn");
+      const tasksCont = document.getElementById("d-tasks-container");
+      const paysCont = document.getElementById("d-pays-container");
+
+      if (tab === "tasks") {
+        tasksBtn.className = "flex-1 py-2 font-bold rounded-lg bg-emerald-600 text-white";
+        paysBtn.className = "flex-1 py-2 font-bold rounded-lg text-slate-400 hover:text-white";
+        tasksCont.classList.remove("hidden");
+        paysCont.classList.add("hidden");
+      } else {
+        paysBtn.className = "flex-1 py-2 font-bold rounded-lg bg-emerald-600 text-white";
+        tasksBtn.className = "flex-1 py-2 font-bold rounded-lg text-slate-400 hover:text-white";
+        paysCont.classList.remove("hidden");
+        tasksCont.classList.add("hidden");
+      }
+    }
+
+    // رندر پنل مدیر
     function renderAdmin() {
       document.getElementById("admin-view").classList.remove("hidden");
       document.getElementById("adm-total-debt").innerHTML = `${currentData.total_studio_debt.toLocaleString("fa-IR")} <span class="text-sm font-normal text-slate-400">تومان</span>`;
@@ -224,7 +383,7 @@
           </div>
           <div class="text-left flex items-center gap-2">
             <div>
-              <div class="text-[10px] text-slate-400">طلب</div>
+              <div class="text-[10px] text-slate-400">مانده کل</div>
               <div class="text-sm font-bold text-emerald-400">${d.balance.toLocaleString("fa-IR")} ت</div>
             </div>
             <span class="text-slate-500 text-lg">‹</span>
@@ -243,51 +402,209 @@
 
       document.getElementById("modal-designer-name").innerText = d.first_name;
       document.getElementById("modal-designer-user").innerText = `@${d.username || d.telegram_id}`;
-      document.getElementById("modal-designer-balance").innerText = `${d.balance.toLocaleString("fa-IR")} تومان`;
 
       document.getElementById("modal-rate-orig").value = d.rate_original || 200000;
       document.getElementById("modal-rate-rep").value = d.rate_repeat || 100000;
-      document.getElementById("modal-pay-amount").value = d.balance > 0 ? d.balance : "";
+      document.getElementById("modal-pay-date").value = getPersianDateStr(new Date());
 
-      const allTasks = d.tasks || [];
-      const activeTasks = allTasks.filter(t => t.status !== "rejected");
-      const archiveTasks = allTasks.filter(t => t.status === "rejected");
+      populateAdminPeriodSelects(d);
+      refreshAdminModalContent();
+    }
+
+    function populateAdminPeriodSelects(d) {
+      const filterSelect = document.getElementById("modal-period-select");
+      const payPeriodSelect = document.getElementById("modal-pay-period-select");
+      const currentPeriod = getCurrentPersianPeriod();
+
+      const periods = new Set();
+      periods.add(currentPeriod);
+
+      d.tasks?.forEach(t => { if (t.period) periods.add(t.period); else if (t.created_at) periods.add(getPersianPeriod(t.created_at)); });
+      d.payments?.forEach(p => { if (p.period) periods.add(p.period); });
+
+      filterSelect.innerHTML = '<option value="all">📊 کل سوابق (همه دوره‌ها)</option>';
+      payPeriodSelect.innerHTML = '';
+
+      periods.forEach(p => {
+        filterSelect.innerHTML += `<option value="${p}">${p}</option>`;
+        payPeriodSelect.innerHTML += `<option value="${p}">${p}</option>`;
+      });
+
+      filterSelect.value = selectedPeriod;
+      payPeriodSelect.value = currentPeriod;
+    }
+
+    function onAdminPeriodChange() {
+      selectedPeriod = document.getElementById("modal-period-select").value;
+      refreshAdminModalContent();
+    }
+
+    function refreshAdminModalContent() {
+      const d = currentData.designers.find(x => x.telegram_id === selectedDesignerId);
+      if (!d) return;
+
+      let tasks = d.tasks || [];
+      let pays = d.payments || [];
+
+      if (selectedPeriod !== "all") {
+        tasks = tasks.filter(t => (t.period || getPersianPeriod(t.created_at)) === selectedPeriod);
+        pays = pays.filter(p => (p.period || getPersianPeriod(p.payment_date || p.created_at)) === selectedPeriod);
+      }
+
+      let earned = 0;
+      tasks.forEach(t => {
+        if (t.status === "approved_original") earned += Number(t.amount || d.rate_original || 200000);
+        if (t.status === "approved_repeat") earned += Number(t.amount || d.rate_repeat || 100000);
+      });
+      const paid = pays.reduce((acc, p) => acc + Number(p.amount), 0);
+      const balance = earned - paid;
+
+      document.getElementById("modal-designer-balance").innerText = `${balance.toLocaleString("fa-IR")} تومان`;
+      document.getElementById("modal-pay-amount").value = balance > 0 ? balance : "";
+
+      const activeTasks = tasks.filter(t => t.status !== "rejected");
+      const archiveTasks = tasks.filter(t => t.status === "rejected");
 
       document.getElementById("active-tasks-count").innerText = activeTasks.length;
       document.getElementById("archive-tasks-count").innerText = archiveTasks.length;
+      document.getElementById("vouchers-count").innerText = `${pays.length} سند`;
 
       renderGroupedTasks(activeTasks, "modal-active-tasks", true);
       renderGroupedTasks(archiveTasks, "modal-archive-tasks", true);
-      switchTaskTab(currentTaskTab);
+      renderAdminVouchers(pays);
+    }
+
+    function renderAdminVouchers(pays) {
+      const container = document.getElementById("modal-vouchers-list");
+      if (!pays || pays.length === 0) {
+        container.innerHTML = '<p class="text-slate-500 text-center py-4">هیچ سندی در این دوره یافت نشد.</p>';
+        return;
+      }
+
+      container.innerHTML = pays.map(p => `
+        <div class="p-3 rounded-xl bg-slate-800/90 border border-slate-700/80 space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="font-extrabold text-emerald-400 text-sm">${Number(p.amount).toLocaleString('fa-IR')} تومان</span>
+            <div class="flex items-center gap-1.5">
+              <button onclick="editPaymentPrompt('${p.id}', ${p.amount}, '${p.period || ''}', '${p.description || ''}')" class="text-[10px] bg-blue-500/20 text-blue-300 px-2 py-1 rounded-lg font-bold">✏️ ویرایش</button>
+              <button onclick="deletePaymentPrompt('${p.id}', ${p.amount})" class="text-[10px] bg-red-500/20 text-red-300 px-2 py-1 rounded-lg font-bold">🗑️ حذف</button>
+            </div>
+          </div>
+          <div class="text-[11px] text-slate-300 flex justify-between">
+            <span>📅 دوره مالی: <b class="text-amber-300">${p.period || 'عمومی'}</b></span>
+            <span class="text-slate-400">واریز: ${getPersianDateStr(p.payment_date || p.created_at)}</span>
+          </div>
+          ${p.description ? `<div class="text-[10px] text-slate-400 pt-1 border-t border-slate-700/50">توضیح: ${p.description}</div>` : ''}
+        </div>
+      `).join("");
     }
 
     function closeDesignerModal() {
       document.getElementById("adm-designer-modal").classList.add("hidden");
       document.getElementById("adm-list-container").classList.remove("hidden");
       selectedDesignerId = null;
+      selectedPeriod = "all";
+    }
+
+    function switchAdminMainTab(tab) {
+      document.getElementById("adm-tab-tasks-btn").className = tab === "tasks" ? "flex-1 py-2 font-bold rounded-lg bg-blue-600 text-white" : "flex-1 py-2 font-bold rounded-lg text-slate-400 hover:text-white";
+      document.getElementById("adm-tab-acc-btn").className = tab === "acc" ? "flex-1 py-2 font-bold rounded-lg bg-blue-600 text-white" : "flex-1 py-2 font-bold rounded-lg text-slate-400 hover:text-white";
+      document.getElementById("adm-tab-rate-btn").className = tab === "rate" ? "flex-1 py-2 font-bold rounded-lg bg-blue-600 text-white" : "flex-1 py-2 font-bold rounded-lg text-slate-400 hover:text-white";
+
+      document.getElementById("adm-section-tasks").classList.toggle("hidden", tab !== "tasks");
+      document.getElementById("adm-section-acc").classList.toggle("hidden", tab !== "acc");
+      document.getElementById("adm-section-rate").classList.toggle("hidden", tab !== "rate");
     }
 
     function switchTaskTab(tab) {
       currentTaskTab = tab;
       const activeBtn = document.getElementById("tab-active-btn");
       const archiveBtn = document.getElementById("tab-archive-btn");
-      const activeContainer = document.getElementById("modal-active-tasks");
-      const archiveContainer = document.getElementById("modal-archive-tasks");
+      const activeCont = document.getElementById("modal-active-tasks");
+      const archiveCont = document.getElementById("modal-archive-tasks");
 
       if (tab === "active") {
-        activeBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-blue-600 text-white transition";
-        archiveBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition";
-        activeContainer.classList.remove("hidden");
-        archiveContainer.classList.add("hidden");
+        activeBtn.className = "flex-1 py-1.5 text-xs font-bold rounded-lg bg-blue-600 text-white transition";
+        archiveBtn.className = "flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition";
+        activeCont.classList.remove("hidden");
+        archiveCont.classList.add("hidden");
       } else {
-        archiveBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-red-600 text-white transition";
-        activeBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition";
-        archiveContainer.classList.remove("hidden");
-        activeContainer.classList.add("hidden");
+        archiveBtn.className = "flex-1 py-1.5 text-xs font-bold rounded-lg bg-red-600 text-white transition";
+        activeBtn.className = "flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition";
+        archiveCont.classList.remove("hidden");
+        activeCont.classList.add("hidden");
       }
     }
 
-    // تغییر نام دستی تاپیک از داخل مینی‌اپ
+    // ثبت سند پرداخت جدید با انتساب به دوره مالی خاص
+    async function submitPayment() {
+      const amount = Number(document.getElementById("modal-pay-amount").value);
+      const period = document.getElementById("modal-pay-period-select").value;
+      const paymentDate = document.getElementById("modal-pay-date").value || getPersianDateStr(new Date());
+      const desc = document.getElementById("modal-pay-desc").value || "تسویه حساب استودیو";
+
+      if (!amount || amount <= 0) return alert("لطفاً مبلغ واریزی را وارد کنید.");
+
+      await fetch(SUPABASE_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "add_payment",
+          designer_id: selectedDesignerId,
+          amount,
+          period,
+          payment_date_str: paymentDate,
+          description: desc,
+          admin_id: userId
+        }),
+      });
+
+      alert(`سند پرداخت ${amount.toLocaleString('fa-IR')} تومان بابت دوره «${period}» ثبت شد.`);
+      await loadData();
+      if (selectedDesignerId) openDesignerModal(selectedDesignerId);
+    }
+
+    // حذف سند مالی
+    async function deletePaymentPrompt(paymentId, amount) {
+      if (!confirm(`آیا از حذف این سند مالی به مبلغ ${amount.toLocaleString('fa-IR')} تومان اطمینان دارید؟ با حذف این سند، این مبلغ به طلب طراح اضافه خواهد شد.`)) return;
+
+      await fetch(SUPABASE_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete_payment", payment_id: paymentId, admin_id: userId }),
+      });
+
+      alert("سند با موفقیت حذف گردید و مانده مالی به‌روزرسانی شد.");
+      await loadData();
+      if (selectedDesignerId) openDesignerModal(selectedDesignerId);
+    }
+
+    // ویرایش سند مالی
+    async function editPaymentPrompt(paymentId, oldAmount, oldPeriod, oldDesc) {
+      const newAmount = prompt("مبلغ جدید به تومان را وارد کنید:", oldAmount);
+      if (!newAmount || isNaN(Number(newAmount))) return;
+
+      const newPeriod = prompt("دوره مالی مربوطه را وارد کنید:", oldPeriod || getCurrentPersianPeriod());
+      const newDesc = prompt("توضیحات سند:", oldDesc);
+
+      await fetch(SUPABASE_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "edit_payment",
+          payment_id: paymentId,
+          amount: Number(newAmount),
+          period: newPeriod,
+          description: newDesc,
+          admin_id: userId
+        }),
+      });
+
+      alert("سند پرداخت با موفقیت ویرایش شد.");
+      await loadData();
+      if (selectedDesignerId) openDesignerModal(selectedDesignerId);
+    }
+
     async function editTopicName(chatId, threadId, currentName) {
       if (!threadId) return alert("این بخش در تاپیک عمومی ثبت شده است.");
       const promptName = currentName.replace("تاپیک #", "").replace("تاپیک ", "");
@@ -358,7 +675,7 @@
                   <span class="font-bold text-slate-200">طرح شماره #${t.task_number || 1}</span>
                   <div class="flex items-center gap-2">
                     ${tgLink ? `<button onclick="openTelegramMessage('${tgLink}')" class="text-[10px] bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 px-2 py-1 rounded-lg font-bold">↗️ مشاهده طرح در تلگرام</button>` : ''}
-                    <span class="text-[10px] text-slate-400">${new Date(t.created_at).toLocaleDateString('fa-IR')}</span>
+                    <span class="text-[10px] text-slate-400">${getPersianDateStr(t.created_at)}</span>
                   </div>
                 </div>
                 <div class="grid grid-cols-3 gap-1.5 pt-1">
@@ -419,21 +736,6 @@
         body: JSON.stringify({ action: "update_rates", designer_id: selectedDesignerId, rate_original: orig, rate_repeat: rep, admin_id: userId }),
       });
       alert("تعرفه با موفقیت ثبت شد.");
-      await loadData();
-      if (selectedDesignerId) openDesignerModal(selectedDesignerId);
-    }
-
-    async function submitPayment() {
-      const amount = Number(document.getElementById("modal-pay-amount").value);
-      const desc = document.getElementById("modal-pay-desc").value || "تسویه حساب استودیو";
-      if (!amount || amount <= 0) return alert("لطفاً مبلغ واریزی را وارد کنید.");
-
-      await fetch(SUPABASE_API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "add_payment", designer_id: selectedDesignerId, amount, description: desc, admin_id: userId }),
-      });
-      alert(`مبلغ ${amount.toLocaleString('fa-IR')} تومان ثبت و از بدهی کسر شد.`);
       await loadData();
       if (selectedDesignerId) openDesignerModal(selectedDesignerId);
     }
