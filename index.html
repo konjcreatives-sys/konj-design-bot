@@ -30,47 +30,50 @@
 
     <!-- ۱. پنل گرافیست -->
     <div id="designer-view" class="hidden space-y-4">
-      <!-- فیلتر دوره مالی برای گرافیست -->
       <div class="card rounded-2xl p-3 flex justify-between items-center">
-        <span class="text-xs text-slate-300 font-bold">📅 دوره مالی:</span>
+        <span class="text-xs text-slate-300 font-bold">📅 فیلتر دوره مالی:</span>
         <select id="designer-period-select" onchange="onDesignerPeriodChange()" class="text-xs p-2 rounded-xl text-white outline-none">
-          <option value="all">📊 کل سوابق (همه دوره‌ها)</option>
+          <option value="all">📊 کل حساب (همه دوره‌ها)</option>
         </select>
       </div>
 
-      <div class="card rounded-2xl p-5 shadow-lg border-t-2 border-emerald-500">
-        <div class="flex justify-between items-center mb-2">
-          <span class="text-xs text-slate-400">صورت‌حساب طراح</span>
+      <div class="card rounded-2xl p-5 shadow-lg border-t-2 border-emerald-500 space-y-2">
+        <div class="flex justify-between items-center">
+          <span id="d-balance-label" class="text-xs text-slate-300 font-bold">مانده طلب شما از استودیو</span>
           <span id="d-name" class="text-sm font-bold text-emerald-400"></span>
         </div>
-        <div class="text-xs text-slate-400 mb-1">مانده بستانکاری (دوره انتخابی)</div>
         <div id="d-balance" class="text-3xl font-extrabold text-white">۰ <span class="text-sm font-normal text-slate-400">تومان</span></div>
+        <div id="d-alltime-hint" class="hidden text-[11px] text-slate-400 pt-1 border-t border-slate-700/50"></div>
       </div>
 
-      <div class="grid grid-cols-2 gap-3">
-        <div class="card rounded-xl p-3 text-center">
-          <div class="text-[11px] text-slate-400">طرح‌های اصلی</div>
-          <div id="d-orig-count" class="text-xl font-bold text-emerald-400 mt-1">۰</div>
+      <!-- جدول شفاف تراز مالی گرافیست -->
+      <div class="card rounded-2xl p-4 space-y-2 text-xs">
+        <div class="flex justify-between items-center text-slate-300">
+          <span>🟢 طرح‌های اصلی تایید شده:</span>
+          <span class="font-bold"><span id="d-orig-count">۰</span> عدد (جمع: <span id="d-orig-sum" class="text-emerald-400">۰</span> ت)</span>
         </div>
-        <div class="card rounded-xl p-3 text-center">
-          <div class="text-[11px] text-slate-400">طرح‌های تکرار</div>
-          <div id="d-rep-count" class="text-xl font-bold text-amber-400 mt-1">۰</div>
+        <div class="flex justify-between items-center text-slate-300">
+          <span>🟡 طرح‌های تکرار تایید شده:</span>
+          <span class="font-bold"><span id="d-rep-count">۰</span> عدد (جمع: <span id="d-rep-sum" class="text-amber-400">۰</span> ت)</span>
         </div>
-        <div class="card rounded-xl p-3 text-center">
-          <div class="text-[11px] text-slate-400">کل کارکرد دوره</div>
-          <div id="d-total-earned" class="text-sm font-bold text-slate-200 mt-1">۰ ت</div>
+        <div class="flex justify-between items-center text-[11px] text-slate-400 pt-1 border-t border-slate-700/40">
+          <span>⚙️ تعرفه جاری (طرح‌های جدید):</span>
+          <span>اصلی <b id="d-rate-orig">۰</b> ت | تکرار <b id="d-rate-rep">۰</b> ت</span>
         </div>
-        <div class="card rounded-xl p-3 text-center">
-          <div class="text-[11px] text-slate-400">مجموع دریافتی دوره</div>
-          <div id="d-total-paid" class="text-sm font-bold text-slate-200 mt-1">۰ ت</div>
+        <div class="border-t border-slate-700/60 pt-2 flex justify-between items-center">
+          <span class="text-slate-300 font-bold">💵 جمع کل کارکرد:</span>
+          <span id="d-total-earned" class="font-extrabold text-white">۰ تومان</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-slate-300 font-bold">💳 کسر می‌شود (مجموع دریافتی):</span>
+          <span id="d-total-paid" class="font-extrabold text-blue-400">۰ تومان</span>
         </div>
       </div>
 
-      <!-- تب‌های نمایش طرح‌ها و اسناد دریافتی برای گرافیست -->
       <div class="card rounded-2xl p-4 space-y-3">
         <div class="flex gap-2 p-1 bg-slate-800/90 rounded-xl text-xs">
-          <button id="d-tab-tasks-btn" onclick="switchDesignerTab('tasks')" class="flex-1 py-2 font-bold rounded-lg bg-emerald-600 text-white">🎨 طرح‌های دوره</button>
-          <button id="d-tab-pays-btn" onclick="switchDesignerTab('pays')" class="flex-1 py-2 font-bold rounded-lg text-slate-400 hover:text-white">💳 اسناد پرداختی</button>
+          <button id="d-tab-tasks-btn" onclick="switchDesignerTab('tasks')" class="flex-1 py-2 font-bold rounded-lg bg-emerald-600 text-white">🎨 طرح‌ها</button>
+          <button id="d-tab-pays-btn" onclick="switchDesignerTab('pays')" class="flex-1 py-2 font-bold rounded-lg text-slate-400 hover:text-white">💳 اسناد دریافتی</button>
         </div>
         <div id="d-tasks-container" class="space-y-3 text-xs pt-1"></div>
         <div id="d-pays-container" class="hidden space-y-2 text-xs pt-1"></div>
@@ -84,7 +87,7 @@
           <span class="text-xs text-slate-400">کارتابل مدیریت استودیو کنج</span>
           <span class="text-xs bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full font-bold">مدیر ارشد</span>
         </div>
-        <div class="text-xs text-slate-400 mb-1">مجموع بدهی جاری به طراحان</div>
+        <div class="text-xs text-slate-400 mb-1">مجموع بدهی خالص استودیو به طراحان</div>
         <div id="adm-total-debt" class="text-3xl font-extrabold text-white">۰ <span class="text-sm font-normal text-slate-400">تومان</span></div>
       </div>
 
@@ -100,7 +103,6 @@
           ← بازگشت به لیست همکاران
         </button>
 
-        <!-- هدر کارت طراح + فیلتر ماه/سال دوره مالی -->
         <div class="card rounded-2xl p-4 border border-blue-500/30 space-y-3">
           <div class="flex justify-between items-center">
             <div>
@@ -108,28 +110,56 @@
               <span id="modal-designer-user" class="text-xs text-slate-400"></span>
             </div>
             <div class="text-left">
-              <div class="text-[10px] text-slate-400">مانده دوره انتخابی:</div>
-              <div id="modal-designer-balance" class="text-emerald-400 font-extrabold text-sm">۰ ت</div>
+              <div id="modal-balance-title" class="text-[10px] text-slate-400">مانده طلب مجری:</div>
+              <div id="modal-designer-balance" class="text-emerald-400 font-extrabold text-base">۰ ت</div>
             </div>
           </div>
 
-          <!-- فیلتر دوره مالی طراح -->
-          <div class="pt-2 border-t border-slate-700/60 flex items-center justify-between">
+          <div id="modal-alltime-summary" class="hidden text-[11px] bg-slate-800/80 p-2 rounded-lg text-slate-300 flex justify-between">
+            <span>مانده کل حساب (همه دوره‌ها):</span>
+            <b id="modal-alltime-val" class="text-white"></b>
+          </div>
+
+          <!-- جدول ریز محاسبات در پنل مدیر -->
+          <div class="bg-slate-900/70 p-3 rounded-xl space-y-1.5 text-[11px] border border-slate-700/50">
+            <div class="flex justify-between text-slate-300">
+              <span>🟢 طرح‌های اصلی تایید شده:</span>
+              <b><span id="m-orig-count">۰</span> عدد (جمع: <span id="m-orig-sum" class="text-emerald-400">۰</span> ت)</b>
+            </div>
+            <div class="flex justify-between text-slate-300">
+              <span>🟡 طرح‌های تکرار تایید شده:</span>
+              <b><span id="m-rep-count">۰</span> عدد (جمع: <span id="m-rep-sum" class="text-amber-400">۰</span> ت)</b>
+            </div>
+            <div class="flex justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-800">
+              <span>⚙️ تعرفه جاری (برای طرح‌های بعدی):</span>
+              <span>اصلی <b id="m-rate-orig">۰</b> ت | تکرار <b id="m-rate-rep">۰</b> ت</span>
+            </div>
+            <div class="flex justify-between text-white font-bold pt-1 border-t border-slate-700/50">
+              <span>💵 جمع کل کارکرد:</span>
+              <span id="m-earned-sum">۰ تومان</span>
+            </div>
+            <div class="flex justify-between text-blue-400 font-bold">
+              <span>💳 کسر پرداختی‌ها:</span>
+              <span id="m-paid-sum">۰ تومان</span>
+            </div>
+          </div>
+
+          <div class="pt-1 flex items-center justify-between">
             <label class="text-xs font-bold text-amber-400">📅 فیلتر دوره مالی:</label>
             <select id="modal-period-select" onchange="onAdminPeriodChange()" class="text-xs p-2 rounded-xl text-white outline-none">
-              <option value="all">📊 کل سوابق (همه دوره‌ها)</option>
+              <option value="all">📊 کل حساب (همه دوره‌ها)</option>
             </select>
           </div>
         </div>
 
-        <!-- تب‌های ۳ گانه مدیر: ۱. طرح‌ها ۲. اسناد حسابداری ۳. تعرفه‌ها -->
+        <!-- تب‌های ۳ گانه مدیر -->
         <div class="flex gap-1.5 p-1 bg-slate-800/90 rounded-xl text-xs">
           <button id="adm-tab-tasks-btn" onclick="switchAdminMainTab('tasks')" class="flex-1 py-2 font-bold rounded-lg bg-blue-600 text-white">🎨 طرح‌ها</button>
           <button id="adm-tab-acc-btn" onclick="switchAdminMainTab('acc')" class="flex-1 py-2 font-bold rounded-lg text-slate-400 hover:text-white">💳 حسابداری و اسناد</button>
           <button id="adm-tab-rate-btn" onclick="switchAdminMainTab('rate')" class="flex-1 py-2 font-bold rounded-lg text-slate-400 hover:text-white">⚙️ تعرفه</button>
         </div>
 
-        <!-- تب ۱: طرح‌ها و پروژه‌ها -->
+        <!-- تب ۱: طرح‌ها -->
         <div id="adm-section-tasks" class="space-y-4">
           <div class="card rounded-2xl p-4 space-y-3">
             <div class="flex gap-2 p-1 bg-slate-800/90 rounded-xl">
@@ -145,16 +175,15 @@
           </div>
         </div>
 
-        <!-- تب ۲: اسناد حسابداری و تسویه‌ها (با امکان حذف و ویرایش) -->
+        <!-- تب ۲: اسناد حسابداری -->
         <div id="adm-section-acc" class="hidden space-y-4">
-          <!-- فرم صدور سند پرداخت جدید -->
           <div class="card rounded-2xl p-4 space-y-3 border-t-2 border-emerald-500">
             <h4 class="text-xs font-bold text-slate-200 flex items-center gap-1"><span>💳</span> صدور سند واریزی / تسویه جدید</h4>
             
             <div class="grid grid-cols-2 gap-2">
               <div>
                 <label class="text-[10px] text-slate-400">مبلغ واریزی (تومان):</label>
-                <input id="modal-pay-amount" type="number" placeholder="مثال: 1500000" class="w-full text-xs p-2.5 rounded-xl text-white mt-1" />
+                <input id="modal-pay-amount" type="text" inputmode="numeric" placeholder="مثال: 1500000" class="w-full text-xs p-2.5 rounded-xl text-white mt-1" />
               </div>
               <div>
                 <label class="text-[10px] text-slate-400">مربوط به دوره مالی:</label>
@@ -173,12 +202,11 @@
               </div>
             </div>
 
-            <button onclick="submitPayment()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs py-2.5 rounded-xl font-bold transition">
+            <button id="btn-submit-pay" onclick="submitPayment()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs py-2.5 rounded-xl font-bold transition">
               ✅ ثبت و صدور سند مالی
             </button>
           </div>
 
-          <!-- لیست اسناد مالی واریز شده -->
           <div class="card rounded-2xl p-4 space-y-3">
             <h4 class="text-xs font-bold text-slate-200 flex items-center justify-between">
               <span>📋 لیست اسناد پرداختی طراح</span>
@@ -191,19 +219,20 @@
         <!-- تب ۳: تنظیم تعرفه‌ها -->
         <div id="adm-section-rate" class="hidden space-y-4">
           <div class="card rounded-2xl p-4 space-y-3">
-            <h4 class="text-xs font-bold text-slate-200 flex items-center gap-1"><span>⚙️</span> تنظیم دستی تعرفه طراح (تومان)</h4>
+            <h4 class="text-xs font-bold text-slate-200 flex items-center gap-1"><span>⚙️</span> تنظیم تعرفه طرح‌های جدید (تومان)</h4>
+            <p class="text-[10px] text-slate-400 leading-relaxed">تغییر این مبالغ فقط روی طرح‌هایی که از این لحظه به بعد تایید می‌شوند اعمال می‌گردد و مبالغ طرح‌های قبلی دست‌نخورده باقی می‌ماند.</p>
             <div class="grid grid-cols-2 gap-2">
               <div>
-                <label class="text-[10px] text-slate-400">طرح اصلی:</label>
-                <input id="modal-rate-orig" type="number" class="w-full text-xs p-2.5 rounded-xl text-white mt-1" />
+                <label class="text-[10px] text-slate-400">طرح اصلی جدید:</label>
+                <input id="modal-rate-orig" type="text" inputmode="numeric" class="w-full text-xs p-2.5 rounded-xl text-white mt-1" />
               </div>
               <div>
-                <label class="text-[10px] text-slate-400">طرح تکرار/ادیت:</label>
-                <input id="modal-rate-rep" type="number" class="w-full text-xs p-2.5 rounded-xl text-white mt-1" />
+                <label class="text-[10px] text-slate-400">طرح تکرار/ادیت جدید:</label>
+                <input id="modal-rate-rep" type="text" inputmode="numeric" class="w-full text-xs p-2.5 rounded-xl text-white mt-1" />
               </div>
             </div>
-            <button onclick="saveRates()" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs py-2.5 rounded-xl font-bold transition">
-              💾 ذخیره تعرفه‌ها
+            <button id="btn-save-rate" onclick="saveRates()" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs py-2.5 rounded-xl font-bold transition">
+              💾 ذخیره تعرفه جدید
             </button>
           </div>
         </div>
@@ -223,30 +252,98 @@
     let selectedDesignerId = null;
     let selectedPeriod = "all";
     let currentTaskTab = "active";
+    let isBusy = false;
 
-    // نام ماه‌های شمسی
     const persianMonths = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
+
+    // تبدیل اعداد فارسی/عربی و کاما به عدد خالص انگلیسی
+    function toEnDigits(str) {
+      return String(str ?? "")
+        .replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d))
+        .replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d))
+        .replace(/[,٬،\s]/g, "");
+    }
+
+    function toFaDigits(str) {
+      return String(str ?? "").replace(/\d/g, d => "۰۱۲۳۴۵۶۷۸۹"[Number(d)]);
+    }
+
+    function escapeHtml(text) {
+      return String(text || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    function normalizePeriod(rawPeriod, fallbackDate) {
+      if (rawPeriod && typeof rawPeriod === "string") {
+        const clean = toFaDigits(rawPeriod).replace(/ه‍\.ش\.?/g, "").replace(/\s+/g, " ").trim();
+        if (clean) return clean;
+      }
+      const d = fallbackDate ? new Date(fallbackDate) : new Date();
+      try {
+        const parts = new Intl.DateTimeFormat('en-US-u-ca-persian', { year: 'numeric', month: 'numeric' }).formatToParts(d);
+        const y = parts.find(p => p.type === 'year')?.value || '1405';
+        const m = parseInt(parts.find(p => p.type === 'month')?.value || '1', 10);
+        return `${persianMonths[m - 1] || persianMonths[0]} ${toFaDigits(y)}`;
+      } catch (_) {
+        return "مهر ۱۴۰۵";
+      }
+    }
 
     function getPersianDateStr(d) {
       if (!d) return "-";
-      return new Intl.DateTimeFormat('fa-IR-u-ca-persian', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(d));
+      return new Intl.DateTimeFormat('fa-IR-u-ca-persian', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(d)).replace(/ه‍\.ش\.?/g, "").trim();
     }
 
-    function getPersianPeriod(d) {
-      if (!d) return "-";
-      return new Intl.DateTimeFormat('fa-IR-u-ca-persian', { year: 'numeric', month: 'long' }).format(new Date(d));
+    function getPaymentDisplayDate(p) {
+      if (p.payment_date_str && p.payment_date_str.trim()) return p.payment_date_str.trim();
+      return getPersianDateStr(p.payment_date || p.created_at);
     }
 
-    function getCurrentPersianPeriod() {
-      return new Intl.DateTimeFormat('fa-IR-u-ca-persian', { year: 'numeric', month: 'long' }).format(new Date());
+    function computeFinancials(tasks, payments, rateOrig, rateRep, periodFilter) {
+      const rO = Number(rateOrig || 200000);
+      const rR = Number(rateRep || 100000);
+
+      let fTasks = tasks || [];
+      let fPays = payments || [];
+
+      if (periodFilter && periodFilter !== "all") {
+        fTasks = fTasks.filter(t => normalizePeriod(t.period, t.created_at) === periodFilter);
+        fPays = fPays.filter(p => normalizePeriod(p.period, p.payment_date || p.created_at) === periodFilter);
+      }
+
+      let origCount = 0, repCount = 0, origSum = 0, repSum = 0;
+
+      fTasks.forEach(t => {
+        if (t.status === "approved_original") {
+          origCount++;
+          origSum += Number(t.amount) > 0 ? Number(t.amount) : rO;
+        } else if (t.status === "approved_repeat") {
+          repCount++;
+          repSum += Number(t.amount) > 0 ? Number(t.amount) : rR;
+        }
+      });
+
+      const earned = origSum + repSum;
+      const paid = fPays.reduce((acc, p) => acc + Number(p.amount || 0), 0);
+      const balance = earned - paid;
+
+      return { origCount, repCount, origSum, repSum, earned, paid, balance, rO, rR, fTasks, fPays };
+    }
+
+    function getAllStandardPeriods(tasks, payments) {
+      const curP = normalizePeriod(null, new Date());
+      const curYear = curP.split(" ")[1] || "۱۴۰۵";
+      const set = new Set();
+      set.add(curP);
+      tasks?.forEach(t => set.add(normalizePeriod(t.period, t.created_at)));
+      payments?.forEach(p => set.add(normalizePeriod(p.period, p.payment_date || p.created_at)));
+      persianMonths.forEach(m => set.add(`${m} ${curYear}`));
+      return Array.from(set);
     }
 
     function getTelegramMessageLink(t) {
       if (!t.chat_id || !t.message_id) return null;
       const cleanChatId = String(t.chat_id).replace("-100", "");
-      if (t.thread_id) {
-        return `https://t.me/c/${cleanChatId}/${t.thread_id}/${t.message_id}`;
-      }
+      if (t.thread_id) return `https://t.me/c/${cleanChatId}/${t.thread_id}/${t.message_id}`;
       return `https://t.me/c/${cleanChatId}/${t.message_id}`;
     }
 
@@ -278,19 +375,11 @@
       }
     }
 
-    // تولید لیست دوره‌های مالی برای گرافیست
     function populateDesignerPeriodOptions() {
       const select = document.getElementById("designer-period-select");
-      const periods = new Set();
-      periods.add(getCurrentPersianPeriod());
-
-      currentData.tasks?.forEach(t => { if (t.period) periods.add(t.period); else if (t.created_at) periods.add(getPersianPeriod(t.created_at)); });
-      currentData.payments?.forEach(p => { if (p.period) periods.add(p.period); });
-
-      select.innerHTML = '<option value="all">📊 کل سوابق (همه دوره‌ها)</option>';
-      periods.forEach(p => {
-        select.innerHTML += `<option value="${p}">${p}</option>`;
-      });
+      const periods = getAllStandardPeriods(currentData.tasks, currentData.payments);
+      select.innerHTML = '<option value="all">📊 کل حساب (همه دوره‌ها)</option>';
+      periods.forEach(p => { select.innerHTML += `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`; });
       select.value = selectedPeriod;
     }
 
@@ -304,32 +393,41 @@
       document.getElementById("designer-view").classList.remove("hidden");
       document.getElementById("d-name").innerText = data.designer.first_name;
 
-      // فیلتر بر اساس دوره مالی
-      let filteredTasks = data.tasks || [];
-      let filteredPays = data.payments || [];
+      const calc = computeFinancials(data.tasks, data.payments, data.designer.rate_original, data.designer.rate_repeat, selectedPeriod);
+      const allTimeCalc = computeFinancials(data.tasks, data.payments, data.designer.rate_original, data.designer.rate_repeat, "all");
 
-      if (selectedPeriod !== "all") {
-        filteredTasks = filteredTasks.filter(t => (t.period || getPersianPeriod(t.created_at)) === selectedPeriod);
-        filteredPays = filteredPays.filter(p => (p.period || getPersianPeriod(p.payment_date || p.created_at)) === selectedPeriod);
+      const balEl = document.getElementById("d-balance");
+      const labelEl = document.getElementById("d-balance-label");
+      const hintEl = document.getElementById("d-alltime-hint");
+
+      if (calc.balance >= 0) {
+        labelEl.innerText = selectedPeriod === "all" ? "مانده طلب کل شما از استودیو" : `مانده طلب شما در دوره ${selectedPeriod}`;
+        balEl.className = "text-3xl font-extrabold text-emerald-400";
+        balEl.innerHTML = `${calc.balance.toLocaleString("fa-IR")} <span class="text-sm font-normal text-slate-300">تومان</span>`;
+      } else {
+        labelEl.innerText = selectedPeriod === "all" ? "اضافه دریافتی / بدهی شما به استودیو" : `اضافه دریافتی در دوره ${selectedPeriod}`;
+        balEl.className = "text-3xl font-extrabold text-red-400";
+        balEl.innerHTML = `${Math.abs(calc.balance).toLocaleString("fa-IR")} <span class="text-sm font-normal text-slate-300">تومان (بدهکار)</span>`;
       }
 
-      let orig = 0, rep = 0, earned = 0;
-      filteredTasks.forEach(t => {
-        if (t.status === "approved_original") { orig++; earned += Number(t.amount || data.designer.rate_original || 200000); }
-        if (t.status === "approved_repeat") { rep++; earned += Number(t.amount || data.designer.rate_repeat || 100000); }
-      });
+      if (selectedPeriod !== "all") {
+        hintEl.classList.remove("hidden");
+        hintEl.innerText = `📊 مانده کل حساب شما (تمام دوره‌ها): ${allTimeCalc.balance.toLocaleString("fa-IR")} تومان`;
+      } else {
+        hintEl.classList.add("hidden");
+      }
 
-      const paid = filteredPays.reduce((acc, p) => acc + Number(p.amount), 0);
-      const balance = earned - paid;
+      document.getElementById("d-rate-orig").innerText = calc.rO.toLocaleString("fa-IR");
+      document.getElementById("d-rate-rep").innerText = calc.rR.toLocaleString("fa-IR");
+      document.getElementById("d-orig-count").innerText = calc.origCount.toLocaleString("fa-IR");
+      document.getElementById("d-rep-count").innerText = calc.repCount.toLocaleString("fa-IR");
+      document.getElementById("d-orig-sum").innerText = calc.origSum.toLocaleString("fa-IR");
+      document.getElementById("d-rep-sum").innerText = calc.repSum.toLocaleString("fa-IR");
+      document.getElementById("d-total-earned").innerText = `${calc.earned.toLocaleString("fa-IR")} تومان`;
+      document.getElementById("d-total-paid").innerText = `${calc.paid.toLocaleString("fa-IR")} تومان`;
 
-      document.getElementById("d-balance").innerHTML = `${balance.toLocaleString("fa-IR")} <span class="text-sm font-normal text-slate-400">تومان</span>`;
-      document.getElementById("d-orig-count").innerText = orig;
-      document.getElementById("d-rep-count").innerText = rep;
-      document.getElementById("d-total-earned").innerText = `${earned.toLocaleString("fa-IR")} ت`;
-      document.getElementById("d-total-paid").innerText = `${paid.toLocaleString("fa-IR")} ت`;
-
-      renderGroupedTasks(filteredTasks, "d-tasks-container", false);
-      renderDesignerPayments(filteredPays);
+      renderGroupedTasks(calc.fTasks, "d-tasks-container", false, calc.rO, calc.rR);
+      renderDesignerPayments(calc.fPays);
     }
 
     function renderDesignerPayments(pays) {
@@ -343,53 +441,49 @@
         <div class="p-3 rounded-xl bg-slate-800/80 border border-slate-700/60 flex justify-between items-center">
           <div>
             <div class="font-bold text-emerald-400">${Number(p.amount).toLocaleString('fa-IR')} تومان</div>
-            <div class="text-[10px] text-slate-400 mt-0.5">بابت دوره: <b class="text-amber-300">${p.period || '-'}</b> | تاریخ پرداخت: ${getPersianDateStr(p.payment_date || p.created_at)}</div>
-            ${p.description ? `<div class="text-[10px] text-slate-400 mt-0.5">توضیح: ${p.description}</div>` : ''}
+            <div class="text-[10px] text-slate-400 mt-0.5">بابت دوره: <b class="text-amber-300">${escapeHtml(normalizePeriod(p.period, p.payment_date || p.created_at))}</b> | تاریخ واریز: ${escapeHtml(getPaymentDisplayDate(p))}</div>
+            ${p.description ? `<div class="text-[10px] text-slate-400 mt-0.5">توضیح: ${escapeHtml(p.description)}</div>` : ''}
           </div>
         </div>
       `).join("");
     }
 
     function switchDesignerTab(tab) {
-      const tasksBtn = document.getElementById("d-tab-tasks-btn");
-      const paysBtn = document.getElementById("d-tab-pays-btn");
-      const tasksCont = document.getElementById("d-tasks-container");
-      const paysCont = document.getElementById("d-pays-container");
-
-      if (tab === "tasks") {
-        tasksBtn.className = "flex-1 py-2 font-bold rounded-lg bg-emerald-600 text-white";
-        paysBtn.className = "flex-1 py-2 font-bold rounded-lg text-slate-400 hover:text-white";
-        tasksCont.classList.remove("hidden");
-        paysCont.classList.add("hidden");
-      } else {
-        paysBtn.className = "flex-1 py-2 font-bold rounded-lg bg-emerald-600 text-white";
-        tasksBtn.className = "flex-1 py-2 font-bold rounded-lg text-slate-400 hover:text-white";
-        paysCont.classList.remove("hidden");
-        tasksCont.classList.add("hidden");
-      }
+      document.getElementById("d-tab-tasks-btn").className = tab === "tasks" ? "flex-1 py-2 font-bold rounded-lg bg-emerald-600 text-white" : "flex-1 py-2 font-bold rounded-lg text-slate-400 hover:text-white";
+      document.getElementById("d-tab-pays-btn").className = tab === "pays" ? "flex-1 py-2 font-bold rounded-lg bg-emerald-600 text-white" : "flex-1 py-2 font-bold rounded-lg text-slate-400 hover:text-white";
+      document.getElementById("d-tasks-container").classList.toggle("hidden", tab !== "tasks");
+      document.getElementById("d-pays-container").classList.toggle("hidden", tab !== "pays");
     }
 
-    // رندر پنل مدیر
     function renderAdmin() {
       document.getElementById("admin-view").classList.remove("hidden");
-      document.getElementById("adm-total-debt").innerHTML = `${currentData.total_studio_debt.toLocaleString("fa-IR")} <span class="text-sm font-normal text-slate-400">تومان</span>`;
 
+      let totalStudioDebt = 0;
       const list = document.getElementById("adm-designers-list");
-      list.innerHTML = currentData.designers.map(d => `
-        <div onclick="openDesignerModal(${d.telegram_id})" class="p-3.5 rounded-xl bg-slate-800/70 border border-slate-700/60 flex justify-between items-center cursor-pointer active:scale-98 transition hover:bg-slate-800">
-          <div>
-            <div class="font-bold text-sm text-slate-200">${d.first_name} <span class="text-[10px] text-slate-400">(@${d.username || d.telegram_id})</span></div>
-            <div class="text-[11px] text-slate-400 mt-1">اصلی: ${d.orig_count} | تکرار: ${d.rep_count}</div>
-          </div>
-          <div class="text-left flex items-center gap-2">
+
+      list.innerHTML = (currentData.designers || []).map(d => {
+        const calc = computeFinancials(d.tasks, d.payments, d.rate_original, d.rate_repeat, "all");
+        if (calc.balance > 0) totalStudioDebt += calc.balance;
+
+        const statusBadge = calc.balance >= 0
+          ? `<div class="text-[10px] text-slate-400">طلب مجری (بدهی شما)</div><div class="text-sm font-bold text-emerald-400">${calc.balance.toLocaleString("fa-IR")} ت</div>`
+          : `<div class="text-[10px] text-red-300">بدهی مجری به شما</div><div class="text-sm font-bold text-red-400">${Math.abs(calc.balance).toLocaleString("fa-IR")} ت</div>`;
+
+        return `
+          <div onclick="openDesignerModal(${d.telegram_id})" class="p-3.5 rounded-xl bg-slate-800/70 border border-slate-700/60 flex justify-between items-center cursor-pointer active:scale-98 transition hover:bg-slate-800">
             <div>
-              <div class="text-[10px] text-slate-400">مانده کل</div>
-              <div class="text-sm font-bold text-emerald-400">${d.balance.toLocaleString("fa-IR")} ت</div>
+              <div class="font-bold text-sm text-slate-200">${escapeHtml(d.first_name)} <span class="text-[10px] text-slate-400">(@${escapeHtml(d.username || d.telegram_id)})</span></div>
+              <div class="text-[11px] text-slate-400 mt-1">اصلی: ${calc.origCount} | تکرار: ${calc.repCount} | پرداختی: ${calc.paid.toLocaleString("fa-IR")} ت</div>
             </div>
-            <span class="text-slate-500 text-lg">‹</span>
+            <div class="text-left flex items-center gap-2">
+              <div>${statusBadge}</div>
+              <span class="text-slate-500 text-lg">‹</span>
+            </div>
           </div>
-        </div>
-      `).join("") || '<p class="text-slate-500 text-center py-4">طراحی یافت نشد.</p>';
+        `;
+      }).join("") || '<p class="text-slate-500 text-center py-4">طراحی یافت نشد.</p>';
+
+      document.getElementById("adm-total-debt").innerHTML = `${totalStudioDebt.toLocaleString("fa-IR")} <span class="text-sm font-normal text-slate-400">تومان</span>`;
     }
 
     function openDesignerModal(designerId) {
@@ -414,28 +508,25 @@
     function populateAdminPeriodSelects(d) {
       const filterSelect = document.getElementById("modal-period-select");
       const payPeriodSelect = document.getElementById("modal-pay-period-select");
-      const currentPeriod = getCurrentPersianPeriod();
+      const currentPeriod = normalizePeriod(null, new Date());
+      const periods = getAllStandardPeriods(d.tasks, d.payments);
 
-      const periods = new Set();
-      periods.add(currentPeriod);
-
-      d.tasks?.forEach(t => { if (t.period) periods.add(t.period); else if (t.created_at) periods.add(getPersianPeriod(t.created_at)); });
-      d.payments?.forEach(p => { if (p.period) periods.add(p.period); });
-
-      filterSelect.innerHTML = '<option value="all">📊 کل سوابق (همه دوره‌ها)</option>';
+      filterSelect.innerHTML = '<option value="all">📊 کل حساب (همه دوره‌ها)</option>';
       payPeriodSelect.innerHTML = '';
 
       periods.forEach(p => {
-        filterSelect.innerHTML += `<option value="${p}">${p}</option>`;
-        payPeriodSelect.innerHTML += `<option value="${p}">${p}</option>`;
+        filterSelect.innerHTML += `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`;
+        payPeriodSelect.innerHTML += `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`;
       });
 
       filterSelect.value = selectedPeriod;
-      payPeriodSelect.value = currentPeriod;
+      payPeriodSelect.value = selectedPeriod !== "all" ? selectedPeriod : currentPeriod;
     }
 
     function onAdminPeriodChange() {
       selectedPeriod = document.getElementById("modal-period-select").value;
+      const payPeriodSelect = document.getElementById("modal-pay-period-select");
+      if (selectedPeriod !== "all") payPeriodSelect.value = selectedPeriod;
       refreshAdminModalContent();
     }
 
@@ -443,35 +534,51 @@
       const d = currentData.designers.find(x => x.telegram_id === selectedDesignerId);
       if (!d) return;
 
-      let tasks = d.tasks || [];
-      let pays = d.payments || [];
+      const calc = computeFinancials(d.tasks, d.payments, d.rate_original, d.rate_repeat, selectedPeriod);
+      const allTime = computeFinancials(d.tasks, d.payments, d.rate_original, d.rate_repeat, "all");
 
-      if (selectedPeriod !== "all") {
-        tasks = tasks.filter(t => (t.period || getPersianPeriod(t.created_at)) === selectedPeriod);
-        pays = pays.filter(p => (p.period || getPersianPeriod(p.payment_date || p.created_at)) === selectedPeriod);
+      const balTitle = document.getElementById("modal-balance-title");
+      const balEl = document.getElementById("modal-designer-balance");
+      const allTimeBox = document.getElementById("modal-alltime-summary");
+
+      if (calc.balance >= 0) {
+        balTitle.innerText = selectedPeriod === "all" ? "طلب مجری (بدهی شما):" : `طلب مجری در ${selectedPeriod}:`;
+        balEl.className = "text-emerald-400 font-extrabold text-base";
+        balEl.innerText = `${calc.balance.toLocaleString("fa-IR")} تومان`;
+      } else {
+        balTitle.innerText = selectedPeriod === "all" ? "اضافه پرداخت (بدهی مجری به شما):" : `اضافه پرداخت در ${selectedPeriod}:`;
+        balEl.className = "text-red-400 font-extrabold text-base";
+        balEl.innerText = `${Math.abs(calc.balance).toLocaleString("fa-IR")} تومان`;
       }
 
-      let earned = 0;
-      tasks.forEach(t => {
-        if (t.status === "approved_original") earned += Number(t.amount || d.rate_original || 200000);
-        if (t.status === "approved_repeat") earned += Number(t.amount || d.rate_repeat || 100000);
-      });
-      const paid = pays.reduce((acc, p) => acc + Number(p.amount), 0);
-      const balance = earned - paid;
+      if (selectedPeriod !== "all") {
+        allTimeBox.classList.remove("hidden");
+        document.getElementById("modal-alltime-val").innerText = `${allTime.balance.toLocaleString("fa-IR")} تومان`;
+      } else {
+        allTimeBox.classList.add("hidden");
+      }
 
-      document.getElementById("modal-designer-balance").innerText = `${balance.toLocaleString("fa-IR")} تومان`;
-      document.getElementById("modal-pay-amount").value = balance > 0 ? balance : "";
+      document.getElementById("m-rate-orig").innerText = calc.rO.toLocaleString("fa-IR");
+      document.getElementById("m-rate-rep").innerText = calc.rR.toLocaleString("fa-IR");
+      document.getElementById("m-orig-count").innerText = calc.origCount.toLocaleString("fa-IR");
+      document.getElementById("m-rep-count").innerText = calc.repCount.toLocaleString("fa-IR");
+      document.getElementById("m-orig-sum").innerText = calc.origSum.toLocaleString("fa-IR");
+      document.getElementById("m-rep-sum").innerText = calc.repSum.toLocaleString("fa-IR");
+      document.getElementById("m-earned-sum").innerText = `${calc.earned.toLocaleString("fa-IR")} تومان`;
+      document.getElementById("m-paid-sum").innerText = `${calc.paid.toLocaleString("fa-IR")} تومان`;
 
-      const activeTasks = tasks.filter(t => t.status !== "rejected");
-      const archiveTasks = tasks.filter(t => t.status === "rejected");
+      document.getElementById("modal-pay-amount").value = calc.balance > 0 ? calc.balance : "";
+
+      const activeTasks = calc.fTasks.filter(t => t.status !== "rejected");
+      const archiveTasks = calc.fTasks.filter(t => t.status === "rejected");
 
       document.getElementById("active-tasks-count").innerText = activeTasks.length;
       document.getElementById("archive-tasks-count").innerText = archiveTasks.length;
-      document.getElementById("vouchers-count").innerText = `${pays.length} سند`;
+      document.getElementById("vouchers-count").innerText = `${calc.fPays.length} سند`;
 
-      renderGroupedTasks(activeTasks, "modal-active-tasks", true);
-      renderGroupedTasks(archiveTasks, "modal-archive-tasks", true);
-      renderAdminVouchers(pays);
+      renderGroupedTasks(activeTasks, "modal-active-tasks", true, calc.rO, calc.rR);
+      renderGroupedTasks(archiveTasks, "modal-archive-tasks", true, calc.rO, calc.rR);
+      renderAdminVouchers(calc.fPays);
     }
 
     function renderAdminVouchers(pays) {
@@ -481,22 +588,26 @@
         return;
       }
 
-      container.innerHTML = pays.map(p => `
-        <div class="p-3 rounded-xl bg-slate-800/90 border border-slate-700/80 space-y-2">
-          <div class="flex justify-between items-center">
-            <span class="font-extrabold text-emerald-400 text-sm">${Number(p.amount).toLocaleString('fa-IR')} تومان</span>
-            <div class="flex items-center gap-1.5">
-              <button onclick="editPaymentPrompt('${p.id}', ${p.amount}, '${p.period || ''}', '${p.description || ''}')" class="text-[10px] bg-blue-500/20 text-blue-300 px-2 py-1 rounded-lg font-bold">✏️ ویرایش</button>
-              <button onclick="deletePaymentPrompt('${p.id}', ${p.amount})" class="text-[10px] bg-red-500/20 text-red-300 px-2 py-1 rounded-lg font-bold">🗑️ حذف</button>
+      container.innerHTML = pays.map(p => {
+        const cleanP = normalizePeriod(p.period, p.payment_date || p.created_at);
+        const payDateDisplay = getPaymentDisplayDate(p);
+        return `
+          <div class="p-3 rounded-xl bg-slate-800/90 border border-slate-700/80 space-y-2">
+            <div class="flex justify-between items-center">
+              <span class="font-extrabold text-emerald-400 text-sm">${Number(p.amount).toLocaleString('fa-IR')} تومان</span>
+              <div class="flex items-center gap-1.5">
+                <button onclick="editPaymentById('${p.id}')" class="text-[10px] bg-blue-500/20 text-blue-300 px-2 py-1 rounded-lg font-bold">✏️ ویرایش</button>
+                <button onclick="deletePaymentById('${p.id}')" class="text-[10px] bg-red-500/20 text-red-300 px-2 py-1 rounded-lg font-bold">🗑️ حذف</button>
+              </div>
             </div>
+            <div class="text-[11px] text-slate-300 flex justify-between">
+              <span>📅 دوره مالی: <b class="text-amber-300">${escapeHtml(cleanP)}</b></span>
+              <span class="text-slate-400">تاریخ پرداخت: ${escapeHtml(payDateDisplay)}</span>
+            </div>
+            ${p.description ? `<div class="text-[10px] text-slate-400 pt-1 border-t border-slate-700/50">توضیح: ${escapeHtml(p.description)}</div>` : ''}
           </div>
-          <div class="text-[11px] text-slate-300 flex justify-between">
-            <span>📅 دوره مالی: <b class="text-amber-300">${p.period || 'عمومی'}</b></span>
-            <span class="text-slate-400">واریز: ${getPersianDateStr(p.payment_date || p.created_at)}</span>
-          </div>
-          ${p.description ? `<div class="text-[10px] text-slate-400 pt-1 border-t border-slate-700/50">توضیح: ${p.description}</div>` : ''}
-        </div>
-      `).join("");
+        `;
+      }).join("");
     }
 
     function closeDesignerModal() {
@@ -504,6 +615,7 @@
       document.getElementById("adm-list-container").classList.remove("hidden");
       selectedDesignerId = null;
       selectedPeriod = "all";
+      renderAdmin();
     }
 
     function switchAdminMainTab(tab) {
@@ -518,110 +630,166 @@
 
     function switchTaskTab(tab) {
       currentTaskTab = tab;
-      const activeBtn = document.getElementById("tab-active-btn");
-      const archiveBtn = document.getElementById("tab-archive-btn");
-      const activeCont = document.getElementById("modal-active-tasks");
-      const archiveCont = document.getElementById("modal-archive-tasks");
+      document.getElementById("tab-active-btn").className = tab === "active" ? "flex-1 py-1.5 text-xs font-bold rounded-lg bg-blue-600 text-white transition" : "flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition";
+      document.getElementById("tab-archive-btn").className = tab === "archive" ? "flex-1 py-1.5 text-xs font-bold rounded-lg bg-red-600 text-white transition" : "flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition";
+      document.getElementById("modal-active-tasks").classList.toggle("hidden", tab !== "active");
+      document.getElementById("modal-archive-tasks").classList.toggle("hidden", tab !== "archive");
+    }
 
-      if (tab === "active") {
-        activeBtn.className = "flex-1 py-1.5 text-xs font-bold rounded-lg bg-blue-600 text-white transition";
-        archiveBtn.className = "flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition";
-        activeCont.classList.remove("hidden");
-        archiveCont.classList.add("hidden");
-      } else {
-        archiveBtn.className = "flex-1 py-1.5 text-xs font-bold rounded-lg bg-red-600 text-white transition";
-        activeBtn.className = "flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition";
-        archiveCont.classList.remove("hidden");
-        activeCont.classList.add("hidden");
+    async function submitPayment() {
+      if (isBusy) return;
+      const rawAmount = toEnDigits(document.getElementById("modal-pay-amount").value);
+      const amount = Number(rawAmount);
+      const period = document.getElementById("modal-pay-period-select").value;
+      const paymentDate = document.getElementById("modal-pay-date").value.trim() || getPersianDateStr(new Date());
+      const desc = document.getElementById("modal-pay-desc").value.trim() || "تسویه حساب استودیو";
+
+      if (!amount || amount <= 0) return alert("لطفاً مبلغ واریزی را به درستی وارد کنید.");
+
+      isBusy = true;
+      const btn = document.getElementById("btn-submit-pay");
+      btn.innerText = "⏳ در حال ثبت سند...";
+
+      try {
+        await fetch(SUPABASE_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "add_payment",
+            designer_id: selectedDesignerId,
+            amount,
+            period: normalizePeriod(period),
+            payment_date_str: paymentDate,
+            description: desc,
+            admin_id: userId
+          }),
+        });
+        document.getElementById("modal-pay-desc").value = "";
+        alert(`سند پرداخت ${amount.toLocaleString('fa-IR')} تومان بابت دوره «${period}» ثبت شد.`);
+        await loadData();
+        if (selectedDesignerId) openDesignerModal(selectedDesignerId);
+      } finally {
+        isBusy = false;
+        btn.innerText = "✅ ثبت و صدور سند مالی";
       }
     }
 
-    // ثبت سند پرداخت جدید با انتساب به دوره مالی خاص
-    async function submitPayment() {
-      const amount = Number(document.getElementById("modal-pay-amount").value);
-      const period = document.getElementById("modal-pay-period-select").value;
-      const paymentDate = document.getElementById("modal-pay-date").value || getPersianDateStr(new Date());
-      const desc = document.getElementById("modal-pay-desc").value || "تسویه حساب استودیو";
+    async function deletePaymentById(paymentId) {
+      if (isBusy) return;
+      const d = currentData.designers.find(x => x.telegram_id === selectedDesignerId);
+      const p = d?.payments?.find(x => x.id === paymentId);
+      if (!p) return;
 
-      if (!amount || amount <= 0) return alert("لطفاً مبلغ واریزی را وارد کنید.");
+      if (!confirm(`آیا از حذف این سند مالی به مبلغ ${Number(p.amount).toLocaleString('fa-IR')} تومان اطمینان دارید؟ با حذف آن، مبلغ به طلب طراح بازگردانده می‌شود.`)) return;
 
-      await fetch(SUPABASE_API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "add_payment",
-          designer_id: selectedDesignerId,
-          amount,
-          period,
-          payment_date_str: paymentDate,
-          description: desc,
-          admin_id: userId
-        }),
-      });
-
-      alert(`سند پرداخت ${amount.toLocaleString('fa-IR')} تومان بابت دوره «${period}» ثبت شد.`);
-      await loadData();
-      if (selectedDesignerId) openDesignerModal(selectedDesignerId);
+      isBusy = true;
+      try {
+        await fetch(SUPABASE_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "delete_payment", payment_id: paymentId, admin_id: userId }),
+        });
+        await loadData();
+        if (selectedDesignerId) openDesignerModal(selectedDesignerId);
+      } finally {
+        isBusy = false;
+      }
     }
 
-    // حذف سند مالی
-    async function deletePaymentPrompt(paymentId, amount) {
-      if (!confirm(`آیا از حذف این سند مالی به مبلغ ${amount.toLocaleString('fa-IR')} تومان اطمینان دارید؟ با حذف این سند، این مبلغ به طلب طراح اضافه خواهد شد.`)) return;
+    async function editPaymentById(paymentId) {
+      if (isBusy) return;
+      const d = currentData.designers.find(x => x.telegram_id === selectedDesignerId);
+      const p = d?.payments?.find(x => x.id === paymentId);
+      if (!p) return;
 
-      await fetch(SUPABASE_API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "delete_payment", payment_id: paymentId, admin_id: userId }),
-      });
+      const oldPeriod = normalizePeriod(p.period, p.payment_date || p.created_at);
+      const oldDateStr = getPaymentDisplayDate(p);
 
-      alert("سند با موفقیت حذف گردید و مانده مالی به‌روزرسانی شد.");
-      await loadData();
-      if (selectedDesignerId) openDesignerModal(selectedDesignerId);
+      const rawAmount = prompt("مبلغ جدید به تومان را وارد کنید:", p.amount);
+      if (rawAmount === null) return;
+      const newAmount = Number(toEnDigits(rawAmount));
+      if (!newAmount || newAmount <= 0) return alert("مبلغ نامعتبر است.");
+
+      const newPeriod = prompt("دوره مالی مربوطه (مثال: مرداد ۱۴۰۵):", oldPeriod);
+      if (newPeriod === null) return;
+
+      const newDateStr = prompt("تاریخ پرداخت (مثال: ۷ شهریور ۱۴۰۵):", oldDateStr);
+      if (newDateStr === null) return;
+
+      const newDesc = prompt("توضیحات سند:", p.description || "");
+      if (newDesc === null) return;
+
+      isBusy = true;
+      try {
+        await fetch(SUPABASE_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "edit_payment",
+            payment_id: paymentId,
+            amount: newAmount,
+            period: normalizePeriod(newPeriod || oldPeriod),
+            payment_date_str: newDateStr.trim() || oldDateStr,
+            description: newDesc.trim(),
+            admin_id: userId
+          }),
+        });
+        await loadData();
+        if (selectedDesignerId) openDesignerModal(selectedDesignerId);
+      } finally {
+        isBusy = false;
+      }
     }
 
-    // ویرایش سند مالی
-    async function editPaymentPrompt(paymentId, oldAmount, oldPeriod, oldDesc) {
-      const newAmount = prompt("مبلغ جدید به تومان را وارد کنید:", oldAmount);
-      if (!newAmount || isNaN(Number(newAmount))) return;
+    async function editTaskFeeById(taskId) {
+      if (isBusy) return;
+      const d = currentData.designers.find(x => x.telegram_id === selectedDesignerId);
+      const t = d?.tasks?.find(x => x.id === taskId);
+      if (!t) return;
 
-      const newPeriod = prompt("دوره مالی مربوطه را وارد کنید:", oldPeriod || getCurrentPersianPeriod());
-      const newDesc = prompt("توضیحات سند:", oldDesc);
+      const rawFee = prompt(`مبلغ اختصاصی برای طرح شماره #${t.task_number || 1} (تومان):`, t.amount || d.rate_original || 200000);
+      if (rawFee === null) return;
+      const newFee = Number(toEnDigits(rawFee));
+      if (isNaN(newFee) || newFee < 0) return alert("مبلغ وارد شده معتبر نیست.");
 
-      await fetch(SUPABASE_API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "edit_payment",
-          payment_id: paymentId,
-          amount: Number(newAmount),
-          period: newPeriod,
-          description: newDesc,
-          admin_id: userId
-        }),
-      });
-
-      alert("سند پرداخت با موفقیت ویرایش شد.");
-      await loadData();
-      if (selectedDesignerId) openDesignerModal(selectedDesignerId);
+      isBusy = true;
+      try {
+        await fetch(SUPABASE_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "update_task_amount", task_id: taskId, amount: newFee, admin_id: userId }),
+        });
+        await loadData();
+        if (selectedDesignerId) openDesignerModal(selectedDesignerId);
+      } finally {
+        isBusy = false;
+      }
     }
 
-    async function editTopicName(chatId, threadId, currentName) {
-      if (!threadId) return alert("این بخش در تاپیک عمومی ثبت شده است.");
-      const promptName = currentName.replace("تاپیک #", "").replace("تاپیک ", "");
-      const newName = prompt("نام دلخواه برای این تاپیک/پروژه را وارد کنید:", promptName);
-      if (!newName || newName.trim() === "") return;
+    async function editTopicByKey(chatId, threadId) {
+      if (!threadId || isBusy) return alert("این بخش در تاپیک عمومی ثبت شده است.");
+      const d = currentData.designers.find(x => x.telegram_id === selectedDesignerId);
+      const sampleTask = d?.tasks?.find(x => Number(x.chat_id) === Number(chatId) && Number(x.thread_id) === Number(threadId));
+      const curName = (sampleTask?.topic_name || "").replace("تاپیک #", "");
 
-      await fetch(SUPABASE_API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "update_topic_name", chat_id: chatId, thread_id: threadId, topic_name: newName.trim(), admin_id: userId }),
-      });
-      alert(`نام تاپیک به «${newName.trim()}» تغییر یافت.`);
-      await loadData();
-      if (selectedDesignerId) openDesignerModal(selectedDesignerId);
+      const newName = prompt("نام دلخواه برای این تاپیک/پروژه را وارد کنید:", curName);
+      if (!newName || !newName.trim()) return;
+
+      isBusy = true;
+      try {
+        await fetch(SUPABASE_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "update_topic_name", chat_id: chatId, thread_id: threadId, topic_name: newName.trim(), admin_id: userId }),
+        });
+        await loadData();
+        if (selectedDesignerId) openDesignerModal(selectedDesignerId);
+      } finally {
+        isBusy = false;
+      }
     }
 
-    function renderGroupedTasks(tasks, containerId, isAdmin) {
+    function renderGroupedTasks(tasks, containerId, isAdmin, fallbackOrig, fallbackRep) {
       const container = document.getElementById(containerId);
       if (!tasks || tasks.length === 0) {
         container.innerHTML = '<p class="text-slate-500 text-center py-5">هیچ طرحی در این بخش وجود ندارد.</p>';
@@ -635,13 +803,7 @@
         const key = `${t.chat_id}_${t.thread_id || 0}`;
 
         if (!groups[key]) {
-          groups[key] = {
-            chatId: t.chat_id,
-            threadId: t.thread_id,
-            groupTitle,
-            topicTitle,
-            items: []
-          };
+          groups[key] = { chatId: t.chat_id, threadId: t.thread_id, groupTitle, topicTitle, items: [] };
         }
         groups[key].items.push(t);
       });
@@ -651,11 +813,9 @@
         html += `
           <div class="space-y-2">
             <div class="text-[11px] font-bold text-amber-400 bg-amber-500/10 px-3 py-2 rounded-xl flex justify-between items-center">
-              <div>
-                <span>📁 ${g.groupTitle} ❯ 🏷️ ${g.topicTitle}</span>
-              </div>
+              <div><span>📁 ${escapeHtml(g.groupTitle)} ❯ 🏷️ ${escapeHtml(g.topicTitle)}</span></div>
               <div class="flex items-center gap-2">
-                ${isAdmin && g.threadId ? `<button onclick="editTopicName(${g.chatId}, ${g.threadId}, '${g.topicTitle}')" class="text-[10px] bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 px-2 py-0.5 rounded-lg font-bold">✏️ نام تاپیک</button>` : ''}
+                ${isAdmin && g.threadId ? `<button onclick="editTopicByKey(${g.chatId}, ${g.threadId})" class="text-[10px] bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 px-2 py-0.5 rounded-lg font-bold">✏️ نام تاپیک</button>` : ''}
                 <span class="text-[10px] text-slate-400">${g.items.length} طرح</span>
               </div>
             </div>
@@ -668,33 +828,34 @@
           const isRej = t.status === "rejected";
           const tgLink = getTelegramMessageLink(t);
 
+          let taskFee = 0;
+          if (isOrig) taskFee = Number(t.amount) > 0 ? Number(t.amount) : Number(fallbackOrig || 200000);
+          else if (isRep) taskFee = Number(t.amount) > 0 ? Number(t.amount) : Number(fallbackRep || 100000);
+
           if (isAdmin) {
             html += `
               <div class="p-3 rounded-xl bg-slate-800/80 border border-slate-700/70 space-y-2">
                 <div class="flex justify-between items-center">
-                  <span class="font-bold text-slate-200">طرح شماره #${t.task_number || 1}</span>
+                  <div class="flex items-center gap-1.5">
+                    <span class="font-bold text-slate-200">طرح #${t.task_number || 1}</span>
+                    ${taskFee > 0 ? `<button onclick="editTaskFeeById('${t.id}')" class="text-[10px] bg-emerald-500/15 text-emerald-300 px-1.5 py-0.5 rounded font-bold">${taskFee.toLocaleString('fa-IR')} ت ✏️</button>` : ''}
+                  </div>
                   <div class="flex items-center gap-2">
-                    ${tgLink ? `<button onclick="openTelegramMessage('${tgLink}')" class="text-[10px] bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 px-2 py-1 rounded-lg font-bold">↗️ مشاهده طرح در تلگرام</button>` : ''}
+                    ${tgLink ? `<button onclick="openTelegramMessage('${tgLink}')" class="text-[10px] bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 px-2 py-1 rounded-lg font-bold">↗️ مشاهده در تلگرام</button>` : ''}
                     <span class="text-[10px] text-slate-400">${getPersianDateStr(t.created_at)}</span>
                   </div>
                 </div>
                 <div class="grid grid-cols-3 gap-1.5 pt-1">
-                  <button onclick="changeTaskStatus('${t.id}', 'orig')" class="py-1.5 px-1 rounded-lg font-bold text-[11px] transition ${isOrig ? 'bg-emerald-600 text-white shadow' : 'bg-slate-700/60 text-slate-300'}">
-                    ${isOrig ? '✓ ' : ''}اصلی
-                  </button>
-                  <button onclick="changeTaskStatus('${t.id}', 'rep')" class="py-1.5 px-1 rounded-lg font-bold text-[11px] transition ${isRep ? 'bg-amber-600 text-white shadow' : 'bg-slate-700/60 text-slate-300'}">
-                    ${isRep ? '✓ ' : ''}تکرار
-                  </button>
-                  <button onclick="changeTaskStatus('${t.id}', 'rej')" class="py-1.5 px-1 rounded-lg font-bold text-[11px] transition ${isRej ? 'bg-red-600 text-white shadow' : 'bg-slate-700/60 text-slate-300'}">
-                    ${isRej ? '✓ ' : ''}رد
-                  </button>
+                  <button onclick="changeTaskStatus('${t.id}', 'orig')" class="py-1.5 px-1 rounded-lg font-bold text-[11px] transition ${isOrig ? 'bg-emerald-600 text-white shadow' : 'bg-slate-700/60 text-slate-300'}">${isOrig ? '✓ ' : ''}اصلی</button>
+                  <button onclick="changeTaskStatus('${t.id}', 'rep')" class="py-1.5 px-1 rounded-lg font-bold text-[11px] transition ${isRep ? 'bg-amber-600 text-white shadow' : 'bg-slate-700/60 text-slate-300'}">${isRep ? '✓ ' : ''}تکرار</button>
+                  <button onclick="changeTaskStatus('${t.id}', 'rej')" class="py-1.5 px-1 rounded-lg font-bold text-[11px] transition ${isRej ? 'bg-red-600 text-white shadow' : 'bg-slate-700/60 text-slate-300'}">${isRej ? '✓ ' : ''}رد</button>
                 </div>
               </div>
             `;
           } else {
             let badge = `<span class="bg-slate-700 text-slate-300 px-2.5 py-0.5 rounded-full text-[10px]">در انتظار</span>`;
-            if (isOrig) badge = `<span class="bg-emerald-500/20 text-emerald-300 px-2.5 py-0.5 rounded-full text-[10px] font-bold">اصلی</span>`;
-            if (isRep) badge = `<span class="bg-amber-500/20 text-amber-300 px-2.5 py-0.5 rounded-full text-[10px] font-bold">تکرار</span>`;
+            if (isOrig) badge = `<span class="bg-emerald-500/20 text-emerald-300 px-2.5 py-0.5 rounded-full text-[10px] font-bold">اصلی (${taskFee.toLocaleString('fa-IR')} ت)</span>`;
+            if (isRep) badge = `<span class="bg-amber-500/20 text-amber-300 px-2.5 py-0.5 rounded-full text-[10px] font-bold">تکرار (${taskFee.toLocaleString('fa-IR')} ت)</span>`;
             if (isRej) badge = `<span class="bg-red-500/20 text-red-300 px-2.5 py-0.5 rounded-full text-[10px] font-bold">نیاز به تغییرات</span>`;
 
             html += `
@@ -716,28 +877,44 @@
     }
 
     async function changeTaskStatus(taskId, newStatus) {
-      await fetch(SUPABASE_API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "update_task_status", task_id: taskId, new_status: newStatus, admin_id: userId }),
-      });
-      await loadData();
-      if (selectedDesignerId) openDesignerModal(selectedDesignerId);
+      if (isBusy) return;
+      isBusy = true;
+      try {
+        await fetch(SUPABASE_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "update_task_status", task_id: taskId, new_status: newStatus, admin_id: userId }),
+        });
+        await loadData();
+        if (selectedDesignerId) openDesignerModal(selectedDesignerId);
+      } finally {
+        isBusy = false;
+      }
     }
 
     async function saveRates() {
-      const orig = Number(document.getElementById("modal-rate-orig").value);
-      const rep = Number(document.getElementById("modal-rate-rep").value);
-      if (!orig || !rep) return alert("لطفاً مبالغ را به درستی وارد کنید.");
+      if (isBusy) return;
+      const orig = Number(toEnDigits(document.getElementById("modal-rate-orig").value));
+      const rep = Number(toEnDigits(document.getElementById("modal-rate-rep").value));
+      if (!orig || !rep || orig <= 0 || rep <= 0) return alert("لطفاً مبالغ تعرفه را به درستی وارد کنید.");
 
-      await fetch(SUPABASE_API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "update_rates", designer_id: selectedDesignerId, rate_original: orig, rate_repeat: rep, admin_id: userId }),
-      });
-      alert("تعرفه با موفقیت ثبت شد.");
-      await loadData();
-      if (selectedDesignerId) openDesignerModal(selectedDesignerId);
+      isBusy = true;
+      const btn = document.getElementById("btn-save-rate");
+      btn.innerText = "⏳ در حال ذخیره...";
+
+      try {
+        await fetch(SUPABASE_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "update_rates", designer_id: selectedDesignerId, rate_original: orig, rate_repeat: rep, admin_id: userId }),
+        });
+        alert("تعرفه جدید ثبت شد (فقط برای طرح‌های بعدی اعمال خواهد شد).");
+        await loadData();
+        if (selectedDesignerId) openDesignerModal(selectedDesignerId);
+      } finally {
+        isBusy = false;
+        btn.innerText = "💾 ذخیره تعرفه جدید";
+      }
     }
 
     loadData();
