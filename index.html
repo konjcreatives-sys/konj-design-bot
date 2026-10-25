@@ -57,7 +57,7 @@
           <span class="font-bold"><span id="d-rep-count">۰</span> عدد (جمع: <span id="d-rep-sum" class="text-amber-400">۰</span> ت)</span>
         </div>
         <div class="flex justify-between items-center text-[11px] text-slate-400 pt-1 border-t border-slate-700/40">
-          <span>⚙️ تعرفه جاری (طرح‌های جدید):</span>
+          <span>⚙️ تعرفه جاری:</span>
           <span>اصلی <b id="d-rate-orig">۰</b> ت | تکرار <b id="d-rate-rep">۰</b> ت</span>
         </div>
         <div class="border-t border-slate-700/60 pt-2 flex justify-between items-center">
@@ -115,9 +115,15 @@
             </div>
           </div>
 
-          <div id="modal-alltime-summary" class="hidden text-[11px] bg-slate-800/80 p-2 rounded-lg text-slate-300 flex justify-between">
-            <span>مانده کل حساب (همه دوره‌ها):</span>
-            <b id="modal-alltime-val" class="text-white"></b>
+          <div id="modal-alltime-summary" class="hidden text-[11px] bg-blue-950/60 border border-blue-500/30 p-2.5 rounded-xl text-slate-200 space-y-1">
+            <div class="flex justify-between">
+              <span>📊 جمع کل کارکرد (همه دوره‌ها):</span>
+              <b id="modal-alltime-earned" class="text-white"></b>
+            </div>
+            <div class="flex justify-between">
+              <span>💰 مانده کل حساب (همه دوره‌ها):</span>
+              <b id="modal-alltime-val" class="text-emerald-400"></b>
+            </div>
           </div>
 
           <!-- جدول ریز محاسبات در پنل مدیر -->
@@ -131,11 +137,11 @@
               <b><span id="m-rep-count">۰</span> عدد (جمع: <span id="m-rep-sum" class="text-amber-400">۰</span> ت)</b>
             </div>
             <div class="flex justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-800">
-              <span>⚙️ تعرفه جاری (برای طرح‌های بعدی):</span>
+              <span>⚙️ تعرفه جاری طراح:</span>
               <span>اصلی <b id="m-rate-orig">۰</b> ت | تکرار <b id="m-rate-rep">۰</b> ت</span>
             </div>
             <div class="flex justify-between text-white font-bold pt-1 border-t border-slate-700/50">
-              <span>💵 جمع کل کارکرد:</span>
+              <span>💵 جمع کارکرد:</span>
               <span id="m-earned-sum">۰ تومان</span>
             </div>
             <div class="flex justify-between text-blue-400 font-bold">
@@ -216,24 +222,28 @@
           </div>
         </div>
 
-        <!-- تب ۳: تنظیم تعرفه‌ها -->
+        <!-- تب ۳: تنظیم تعرفه‌ها با ۲ حالت انتخاب -->
         <div id="adm-section-rate" class="hidden space-y-4">
           <div class="card rounded-2xl p-4 space-y-3">
-            <h4 class="text-xs font-bold text-slate-200 flex items-center gap-1"><span>⚙️</span> تنظیم تعرفه طرح‌های جدید (تومان)</h4>
-            <p class="text-[10px] text-slate-400 leading-relaxed">تغییر این مبالغ فقط روی طرح‌هایی که از این لحظه به بعد تایید می‌شوند اعمال می‌گردد و مبالغ طرح‌های قبلی دست‌نخورده باقی می‌ماند.</p>
+            <h4 class="text-xs font-bold text-slate-200 flex items-center gap-1"><span>⚙️</span> تنظیم تعرفه اختصاصی طراح (تومان)</h4>
             <div class="grid grid-cols-2 gap-2">
               <div>
-                <label class="text-[10px] text-slate-400">طرح اصلی جدید:</label>
+                <label class="text-[10px] text-slate-400">طرح اصلی:</label>
                 <input id="modal-rate-orig" type="text" inputmode="numeric" class="w-full text-xs p-2.5 rounded-xl text-white mt-1" />
               </div>
               <div>
-                <label class="text-[10px] text-slate-400">طرح تکرار/ادیت جدید:</label>
+                <label class="text-[10px] text-slate-400">طرح تکرار/ادیت:</label>
                 <input id="modal-rate-rep" type="text" inputmode="numeric" class="w-full text-xs p-2.5 rounded-xl text-white mt-1" />
               </div>
             </div>
-            <button id="btn-save-rate" onclick="saveRates()" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs py-2.5 rounded-xl font-bold transition">
-              💾 ذخیره تعرفه جدید
-            </button>
+            <div class="space-y-2 pt-1">
+              <button id="btn-save-rate-future" onclick="saveRates('future')" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs py-2.5 rounded-xl font-bold transition">
+                💾 ذخیره فقط برای طرح‌های آینده (حفظ مبالغ قبلی)
+              </button>
+              <button id="btn-save-rate-sync" onclick="saveRates('sync_period')" class="w-full bg-amber-600/80 hover:bg-amber-600 text-white text-xs py-2.5 rounded-xl font-bold transition">
+                🔄 ذخیره و بروزرسانی طرح‌های دوره انتخابی با این نرخ
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -256,7 +266,6 @@
 
     const persianMonths = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
 
-    // تبدیل اعداد فارسی/عربی و کاما به عدد خالص انگلیسی
     function toEnDigits(str) {
       return String(str ?? "")
         .replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d))
@@ -272,10 +281,19 @@
       return String(text || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     }
 
+    // تبدیل هر فرمتی مثل "۱۴۰۵ شهریور" یا "شهریور 1405" به فرمت واحد "شهریور ۱۴۰۵"
     function normalizePeriod(rawPeriod, fallbackDate) {
       if (rawPeriod && typeof rawPeriod === "string") {
-        const clean = toFaDigits(rawPeriod).replace(/ه‍\.ش\.?/g, "").replace(/\s+/g, " ").trim();
-        if (clean) return clean;
+        const s = String(rawPeriod)
+          .replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d))
+          .replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d))
+          .replace(/ه‍\.ش\.?/g, "")
+          .trim();
+        const foundMonth = persianMonths.find(m => s.includes(m));
+        const yearMatch = s.match(/(13\d{2}|14\d{2})/);
+        if (foundMonth && yearMatch) {
+          return `${foundMonth} ${toFaDigits(yearMatch[1])}`;
+        }
       }
       const d = fallbackDate ? new Date(fallbackDate) : new Date();
       try {
@@ -306,8 +324,9 @@
       let fPays = payments || [];
 
       if (periodFilter && periodFilter !== "all") {
-        fTasks = fTasks.filter(t => normalizePeriod(t.period, t.created_at) === periodFilter);
-        fPays = fPays.filter(p => normalizePeriod(p.period, p.payment_date || p.created_at) === periodFilter);
+        const targetP = normalizePeriod(periodFilter);
+        fTasks = fTasks.filter(t => normalizePeriod(t.period, t.created_at) === targetP);
+        fPays = fPays.filter(p => normalizePeriod(p.period, p.payment_date || p.created_at) === targetP);
       }
 
       let origCount = 0, repCount = 0, origSum = 0, repSum = 0;
@@ -333,9 +352,9 @@
       const curP = normalizePeriod(null, new Date());
       const curYear = curP.split(" ")[1] || "۱۴۰۵";
       const set = new Set();
-      set.add(curP);
       tasks?.forEach(t => set.add(normalizePeriod(t.period, t.created_at)));
       payments?.forEach(p => set.add(normalizePeriod(p.period, p.payment_date || p.created_at)));
+      set.add(curP);
       persianMonths.forEach(m => set.add(`${m} ${curYear}`));
       return Array.from(set);
     }
@@ -357,7 +376,7 @@
       document.getElementById("error-box").classList.add("hidden");
 
       try {
-        const res = await fetch(`${SUPABASE_API}?user_id=${userId}`);
+        const res = await fetch(`${SUPABASE_API}?user_id=${userId}&t=${Date.now()}`);
         if (!res.ok) throw new Error(`خطای سرور (${res.status})`);
         currentData = await res.json();
         document.getElementById("loading").classList.add("hidden");
@@ -380,7 +399,7 @@
       const periods = getAllStandardPeriods(currentData.tasks, currentData.payments);
       select.innerHTML = '<option value="all">📊 کل حساب (همه دوره‌ها)</option>';
       periods.forEach(p => { select.innerHTML += `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`; });
-      select.value = selectedPeriod;
+      select.value = selectedPeriod === "all" ? "all" : normalizePeriod(selectedPeriod);
     }
 
     function onDesignerPeriodChange() {
@@ -412,7 +431,7 @@
 
       if (selectedPeriod !== "all") {
         hintEl.classList.remove("hidden");
-        hintEl.innerText = `📊 مانده کل حساب شما (تمام دوره‌ها): ${allTimeCalc.balance.toLocaleString("fa-IR")} تومان`;
+        hintEl.innerText = `📊 جمع کل کارکرد همه دوره‌ها: ${allTimeCalc.earned.toLocaleString("fa-IR")} ت | مانده کل: ${allTimeCalc.balance.toLocaleString("fa-IR")} ت`;
       } else {
         hintEl.classList.add("hidden");
       }
@@ -473,7 +492,7 @@
           <div onclick="openDesignerModal(${d.telegram_id})" class="p-3.5 rounded-xl bg-slate-800/70 border border-slate-700/60 flex justify-between items-center cursor-pointer active:scale-98 transition hover:bg-slate-800">
             <div>
               <div class="font-bold text-sm text-slate-200">${escapeHtml(d.first_name)} <span class="text-[10px] text-slate-400">(@${escapeHtml(d.username || d.telegram_id)})</span></div>
-              <div class="text-[11px] text-slate-400 mt-1">اصلی: ${calc.origCount} | تکرار: ${calc.repCount} | پرداختی: ${calc.paid.toLocaleString("fa-IR")} ت</div>
+              <div class="text-[11px] text-slate-400 mt-1">کل کارکرد: ${calc.earned.toLocaleString("fa-IR")} ت | پرداختی: ${calc.paid.toLocaleString("fa-IR")} ت</div>
             </div>
             <div class="text-left flex items-center gap-2">
               <div>${statusBadge}</div>
@@ -519,8 +538,9 @@
         payPeriodSelect.innerHTML += `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`;
       });
 
-      filterSelect.value = selectedPeriod;
-      payPeriodSelect.value = selectedPeriod !== "all" ? selectedPeriod : currentPeriod;
+      const normSel = selectedPeriod === "all" ? "all" : normalizePeriod(selectedPeriod);
+      filterSelect.value = normSel;
+      payPeriodSelect.value = normSel !== "all" ? normSel : currentPeriod;
     }
 
     function onAdminPeriodChange() {
@@ -553,6 +573,7 @@
 
       if (selectedPeriod !== "all") {
         allTimeBox.classList.remove("hidden");
+        document.getElementById("modal-alltime-earned").innerText = `${allTime.earned.toLocaleString("fa-IR")} تومان`;
         document.getElementById("modal-alltime-val").innerText = `${allTime.balance.toLocaleString("fa-IR")} تومان`;
       } else {
         allTimeBox.classList.add("hidden");
@@ -665,7 +686,7 @@
           }),
         });
         document.getElementById("modal-pay-desc").value = "";
-        alert(`سند پرداخت ${amount.toLocaleString('fa-IR')} تومان بابت دوره «${period}» ثبت شد.`);
+        alert(`سند پرداخت ${amount.toLocaleString('fa-IR')} تومان بابت دوره «${normalizePeriod(period)}» ثبت شد.`);
         await loadData();
         if (selectedDesignerId) openDesignerModal(selectedDesignerId);
       } finally {
@@ -710,7 +731,7 @@
       const newAmount = Number(toEnDigits(rawAmount));
       if (!newAmount || newAmount <= 0) return alert("مبلغ نامعتبر است.");
 
-      const newPeriod = prompt("دوره مالی مربوطه (مثال: مرداد ۱۴۰۵):", oldPeriod);
+      const newPeriod = prompt("دوره مالی مربوطه (مثال: شهریور ۱۴۰۵):", oldPeriod);
       if (newPeriod === null) return;
 
       const newDateStr = prompt("تاریخ پرداخت (مثال: ۷ شهریور ۱۴۰۵):", oldDateStr);
@@ -758,6 +779,30 @@
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ action: "update_task_amount", task_id: taskId, amount: newFee, admin_id: userId }),
+        });
+        await loadData();
+        if (selectedDesignerId) openDesignerModal(selectedDesignerId);
+      } finally {
+        isBusy = false;
+      }
+    }
+
+    async function editTaskPeriodById(taskId) {
+      if (isBusy) return;
+      const d = currentData.designers.find(x => x.telegram_id === selectedDesignerId);
+      const t = d?.tasks?.find(x => x.id === taskId);
+      if (!t) return;
+
+      const curP = normalizePeriod(t.period, t.created_at);
+      const newP = prompt(`دوره مالی طرح شماره #${t.task_number || 1} را وارد کنید (مثال: شهریور ۱۴۰۵):`, curP);
+      if (!newP || !newP.trim()) return;
+
+      isBusy = true;
+      try {
+        await fetch(SUPABASE_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "update_task_period", task_id: taskId, period: normalizePeriod(newP), admin_id: userId }),
         });
         await loadData();
         if (selectedDesignerId) openDesignerModal(selectedDesignerId);
@@ -827,6 +872,7 @@
           const isRep = t.status === "approved_repeat";
           const isRej = t.status === "rejected";
           const tgLink = getTelegramMessageLink(t);
+          const taskPeriod = normalizePeriod(t.period, t.created_at);
 
           let taskFee = 0;
           if (isOrig) taskFee = Number(t.amount) > 0 ? Number(t.amount) : Number(fallbackOrig || 200000);
@@ -836,13 +882,13 @@
             html += `
               <div class="p-3 rounded-xl bg-slate-800/80 border border-slate-700/70 space-y-2">
                 <div class="flex justify-between items-center">
-                  <div class="flex items-center gap-1.5">
+                  <div class="flex items-center gap-1.5 flex-wrap">
                     <span class="font-bold text-slate-200">طرح #${t.task_number || 1}</span>
                     ${taskFee > 0 ? `<button onclick="editTaskFeeById('${t.id}')" class="text-[10px] bg-emerald-500/15 text-emerald-300 px-1.5 py-0.5 rounded font-bold">${taskFee.toLocaleString('fa-IR')} ت ✏️</button>` : ''}
+                    <button onclick="editTaskPeriodById('${t.id}')" class="text-[10px] bg-amber-500/15 text-amber-300 px-1.5 py-0.5 rounded font-bold">📅 ${escapeHtml(taskPeriod)}</button>
                   </div>
-                  <div class="flex items-center gap-2">
-                    ${tgLink ? `<button onclick="openTelegramMessage('${tgLink}')" class="text-[10px] bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 px-2 py-1 rounded-lg font-bold">↗️ مشاهده در تلگرام</button>` : ''}
-                    <span class="text-[10px] text-slate-400">${getPersianDateStr(t.created_at)}</span>
+                  <div class="flex items-center gap-1.5">
+                    ${tgLink ? `<button onclick="openTelegramMessage('${tgLink}')" class="text-[10px] bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 px-2 py-1 rounded-lg font-bold">↗️ تلگرام</button>` : ''}
                   </div>
                 </div>
                 <div class="grid grid-cols-3 gap-1.5 pt-1">
@@ -861,8 +907,9 @@
             html += `
               <div class="flex justify-between items-center p-2.5 rounded-xl bg-slate-800/50">
                 <div class="flex items-center gap-2">
-                  <span class="font-bold text-slate-200">طرح شماره #${t.task_number || 1}</span>
-                  ${tgLink ? `<button onclick="openTelegramMessage('${tgLink}')" class="text-[10px] text-blue-400 underline mr-2 font-medium">↗️ فایل در تلگرام</button>` : ''}
+                  <span class="font-bold text-slate-200">طرح #${t.task_number || 1}</span>
+                  <span class="text-[10px] text-slate-400">(${escapeHtml(taskPeriod)})</span>
+                  ${tgLink ? `<button onclick="openTelegramMessage('${tgLink}')" class="text-[10px] text-blue-400 underline mr-1 font-medium">↗️ تلگرام</button>` : ''}
                 </div>
                 <div>${badge}</div>
               </div>
@@ -892,28 +939,32 @@
       }
     }
 
-    async function saveRates() {
+    async function saveRates(mode) {
       if (isBusy) return;
       const orig = Number(toEnDigits(document.getElementById("modal-rate-orig").value));
       const rep = Number(toEnDigits(document.getElementById("modal-rate-rep").value));
       if (!orig || !rep || orig <= 0 || rep <= 0) return alert("لطفاً مبالغ تعرفه را به درستی وارد کنید.");
 
       isBusy = true;
-      const btn = document.getElementById("btn-save-rate");
-      btn.innerText = "⏳ در حال ذخیره...";
-
       try {
         await fetch(SUPABASE_API, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "update_rates", designer_id: selectedDesignerId, rate_original: orig, rate_repeat: rep, admin_id: userId }),
+          body: JSON.stringify({
+            action: "update_rates",
+            designer_id: selectedDesignerId,
+            rate_original: orig,
+            rate_repeat: rep,
+            sync_mode: mode,
+            period: selectedPeriod,
+            admin_id: userId
+          }),
         });
-        alert("تعرفه جدید ثبت شد (فقط برای طرح‌های بعدی اعمال خواهد شد).");
+        alert(mode === "sync_period" ? "تعرفه جدید ذخیره و روی طرح‌های دوره انتخابی هم اعمال شد." : "تعرفه جدید فقط برای طرح‌های آینده ذخیره شد.");
         await loadData();
         if (selectedDesignerId) openDesignerModal(selectedDesignerId);
       } finally {
         isBusy = false;
-        btn.innerText = "💾 ذخیره تعرفه جدید";
       }
     }
 
