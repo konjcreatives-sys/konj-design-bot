@@ -11,6 +11,13 @@
     body { font-family: Vazirmatn, sans-serif; background-color: #0b1120; color: #f8fafc; }
     .card { background: rgba(30, 41, 59, 0.75); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
     input, select { background: rgba(15, 23, 42, 0.9) !important; border: 1px solid rgba(255, 255, 255, 0.18) !important; }
+    details > summary { list-style: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    details > summary::-webkit-details-marker { display: none; }
+    details .chevron { display: inline-block; transition: transform .2s; }
+    details[open] > summary .chevron { transform: rotate(180deg); }
+    details.topic-group { scroll-margin-top: 64px; }
+    .topic-jump-bar { position: sticky; top: 0; z-index: 20; background: rgba(11, 17, 32, 0.96); backdrop-filter: blur(10px); }
+    .chip { display: inline-flex; align-items: center; gap: 2px; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 6px; white-space: nowrap; }
   </style>
 </head>
 <body class="p-4 min-h-screen pb-28">
@@ -69,6 +76,9 @@
           <span id="d-total-paid" class="font-extrabold text-blue-400">۰ تومان</span>
         </div>
       </div>
+
+      <!-- خلاصه کارکرد به تفکیک تاپیک (طراح) -->
+      <div id="d-topic-summary" class="card rounded-2xl p-4 text-xs"></div>
 
       <div class="card rounded-2xl p-4 space-y-3">
         <div class="flex gap-2 p-1 bg-slate-800/90 rounded-xl text-xs">
@@ -171,6 +181,9 @@
 
         <!-- تب ۱: طرح‌ها -->
         <div id="adm-section-tasks" class="space-y-4">
+          <!-- خلاصه کارکرد به تفکیک تاپیک (مدیر) -->
+          <div id="modal-topic-summary" class="card rounded-2xl p-4 text-xs"></div>
+
           <div class="card rounded-2xl p-4 space-y-3">
             <div class="flex gap-2 p-1 bg-slate-800/90 rounded-xl">
               <button id="tab-active-btn" onclick="switchTaskTab('active')" class="flex-1 py-1.5 text-xs font-bold rounded-lg bg-blue-600 text-white transition">
@@ -503,7 +516,9 @@
       document.getElementById("d-total-earned").innerText = `${calc.earned.toLocaleString("fa-IR")} تومان`;
       document.getElementById("d-total-paid").innerText = `${calc.paid.toLocaleString("fa-IR")} تومان`;
 
-      renderGroupedTasks(calc.fTasks, "d-tasks-container", false, calc.rO, calc.rR);
+      const topicStats = computeTopicStats(calc.fTasks, calc.rO, calc.rR);
+      renderTopicSummary(topicStats, "d-topic-summary", "jumpDesignerTopic");
+      renderGroupedTasks(calc.fTasks, "d-tasks-container", false, calc.rO, calc.rR, topicStats);
       renderDesignerPayments(calc.fPays);
     }
 
@@ -662,8 +677,10 @@
       document.getElementById("archive-tasks-count").innerText = archiveTasks.length;
       document.getElementById("vouchers-count").innerText = `${calc.fPays.length} سند`;
 
-      renderGroupedTasks(activeTasks, "modal-active-tasks", true, calc.rO, calc.rR);
-      renderGroupedTasks(archiveTasks, "modal-archive-tasks", true, calc.rO, calc.rR);
+      const topicStats = computeTopicStats(calc.fTasks, calc.rO, calc.rR);
+      renderTopicSummary(topicStats, "modal-topic-summary", "jumpAdminTopic");
+      renderGroupedTasks(activeTasks, "modal-active-tasks", true, calc.rO, calc.rR, topicStats);
+      renderGroupedTasks(archiveTasks, "modal-archive-tasks", true, calc.rO, calc.rR, topicStats);
       renderAdminVouchers(calc.fPays);
     }
 
@@ -701,6 +718,7 @@
       document.getElementById("adm-list-container").classList.remove("hidden");
       selectedDesignerId = null;
       selectedPeriod = "all";
+      openTopics.clear();
       renderAdmin();
     }
 
@@ -837,37 +855,181 @@
       await runAction({ action: "update_topic_name", chat_id: chatId, thread_id: threadId, topic_name: newName.trim() });
     }
 
-    function renderGroupedTasks(tasks, containerId, isAdmin, fallbackOrig, fallbackRep) {
+    // ───────── تاپیک‌ها: آمار، خلاصه، منوی کشویی ─────────
+
+    const faNum = (n) => Number(n || 0).toLocaleString("fa-IR");
+    const openTopics = new Set(); // تاپیک‌های باز، تا بعد از هر عملیات بسته نشوند
+
+    function topicKeyOf(t) { return `${t.chat_id}_${t.thread_id || 0}`; }
+    function topicDomId(containerId, key) { return `topic-${containerId}-${String(key).replace(/-/g, "n")}`; }
+
+    // آمار هر تاپیک (در همان دوره‌ای که فیلتر شده)
+    function computeTopicStats(tasks, rO, rR) {
+      const map = new Map();
+      (tasks || []).forEach(t => {
+        const key = topicKeyOf(t);
+        if (!map.has(key)) {
+          map.set(key, {
+            key, chatId: t.chat_id, threadId: t.thread_id,
+            groupTitle: t.chat_title || "گروه استودیو",
+            topicTitle: t.topic_name || (t.thread_id ? `تاپیک #${t.thread_id}` : "عمومی"),
+            orig: 0, rep: 0, rej: 0, pend: 0, sum: 0, total: 0,
+          });
+        }
+        const s = map.get(key);
+        s.total++;
+        if (t.status === "approved_original") s.orig++;
+        else if (t.status === "approved_repeat") s.rep++;
+        else if (t.status === "rejected") s.rej++;
+        else s.pend++;
+        s.sum += taskFeeOf(t, rO, rR);
+      });
+      return map;
+    }
+
+    function topicChips(s) {
+      return `
+        <span class="chip bg-emerald-500/15 text-emerald-300">🟢 اصلی ${faNum(s.orig)}</span>
+        <span class="chip bg-amber-500/15 text-amber-300">🟡 تکرار ${faNum(s.rep)}</span>
+        <span class="chip bg-red-500/15 text-red-300">🔴 رد ${faNum(s.rej)}</span>
+        <span class="chip bg-slate-600/40 text-slate-300">⏳ انتظار ${faNum(s.pend)}</span>`;
+    }
+
+    // پنل «خلاصه کارکرد به تفکیک تاپیک»
+    function renderTopicSummary(statsMap, elId, jumpFn) {
+      const el = document.getElementById(elId);
+      const list = [...statsMap.values()];
+      const periodLabel = selectedPeriod === "all" ? "همه دوره‌ها" : selectedPeriod;
+      const wasOpen = el.querySelector("details") ? el.querySelector("details").open : true;
+
+      if (!list.length) {
+        el.innerHTML = `<div class="font-bold text-slate-200 mb-2">📊 خلاصه کارکرد تاپیک‌ها <span class="text-[10px] text-amber-300 font-normal">(${escapeHtml(periodLabel)})</span></div>
+          <p class="text-slate-500 text-center py-3">در این دوره طرحی ثبت نشده است.</p>`;
+        return;
+      }
+
+      const tot = list.reduce((a, s) => ({ orig: a.orig + s.orig, rep: a.rep + s.rep, rej: a.rej + s.rej, pend: a.pend + s.pend, sum: a.sum + s.sum }),
+        { orig: 0, rep: 0, rej: 0, pend: 0, sum: 0 });
+
+      const rows = list.map(s => `
+        <button onclick="${jumpFn}('${s.key}')" class="w-full text-right p-2.5 rounded-xl bg-slate-800/70 border border-slate-700/60 hover:bg-slate-800 active:scale-[.99] transition space-y-1.5">
+          <div class="flex justify-between items-center gap-2">
+            <span class="font-bold text-slate-200 truncate">📁 ${escapeHtml(s.groupTitle)} ❯ 🏷️ ${escapeHtml(s.topicTitle)}</span>
+            <span class="shrink-0 text-[11px] font-extrabold text-emerald-400">${faNum(s.sum)} ت <span class="text-slate-500">‹</span></span>
+          </div>
+          <div class="flex flex-wrap gap-1">${topicChips(s)}</div>
+        </button>`).join("");
+
+      el.innerHTML = `
+        <details ${wasOpen ? "open" : ""}>
+          <summary class="flex justify-between items-center">
+            <span class="font-bold text-slate-200">📊 خلاصه کارکرد تاپیک‌ها <span class="text-[10px] text-amber-300 font-normal">(${escapeHtml(periodLabel)})</span></span>
+            <span class="text-[10px] text-slate-400">${faNum(list.length)} تاپیک <span class="chevron">▾</span></span>
+          </summary>
+          <div class="pt-3 space-y-2">
+            <div class="grid grid-cols-4 gap-1.5 text-center">
+              <div class="p-2 rounded-xl bg-emerald-500/10"><div class="text-[10px] text-emerald-300">اصلی</div><div class="font-extrabold text-white">${faNum(tot.orig)}</div></div>
+              <div class="p-2 rounded-xl bg-amber-500/10"><div class="text-[10px] text-amber-300">تکرار</div><div class="font-extrabold text-white">${faNum(tot.rep)}</div></div>
+              <div class="p-2 rounded-xl bg-red-500/10"><div class="text-[10px] text-red-300">رد شده</div><div class="font-extrabold text-white">${faNum(tot.rej)}</div></div>
+              <div class="p-2 rounded-xl bg-slate-600/30"><div class="text-[10px] text-slate-300">در انتظار</div><div class="font-extrabold text-white">${faNum(tot.pend)}</div></div>
+            </div>
+            <div class="text-[10px] text-slate-400">برای دیدن طرح‌های هر تاپیک روی آن بزنید:</div>
+            <div class="space-y-1.5">${rows}</div>
+          </div>
+        </details>`;
+    }
+
+    function onTopicToggle(containerId, key, isOpen) {
+      const k = `${containerId}|${key}`;
+      if (isOpen) openTopics.add(k); else openTopics.delete(k);
+    }
+
+    function jumpToTopic(containerId, key) {
+      if (!key) return;
+      const el = document.getElementById(topicDomId(containerId, key));
+      if (!el) return;
+      el.open = true;
+      openTopics.add(`${containerId}|${key}`);
+      requestAnimationFrame(() => el.scrollIntoView({ behavior: "smooth", block: "start" }));
+    }
+
+    function setAllTopics(containerId, open) {
+      document.querySelectorAll(`#${containerId} details.topic-group`).forEach(d => {
+        d.open = open;
+        onTopicToggle(containerId, d.dataset.key, open);
+      });
+    }
+
+    // پرش از خلاصه (مدیر): اگر تاپیک فقط طرح رد شده دارد به بایگانی برو
+    function jumpAdminTopic(key) {
+      const inActive = document.getElementById(topicDomId("modal-active-tasks", key));
+      switchTaskTab(inActive ? "active" : "archive");
+      jumpToTopic(inActive ? "modal-active-tasks" : "modal-archive-tasks", key);
+    }
+
+    function jumpDesignerTopic(key) {
+      switchDesignerTab("tasks");
+      jumpToTopic("d-tasks-container", key);
+    }
+
+    function renderGroupedTasks(tasks, containerId, isAdmin, fallbackOrig, fallbackRep, topicStats) {
       const container = document.getElementById(containerId);
       if (!tasks || tasks.length === 0) {
         container.innerHTML = '<p class="text-slate-500 text-center py-5">هیچ طرحی در این بخش وجود ندارد.</p>';
         return;
       }
 
-      const groups = {};
+      const groups = new Map();
       tasks.forEach(t => {
-        const groupTitle = t.chat_title || "گروه استودیو";
-        const topicTitle = t.topic_name || (t.thread_id ? `تاپیک #${t.thread_id}` : "عمومی");
-        const key = `${t.chat_id}_${t.thread_id || 0}`;
-
-        if (!groups[key]) {
-          groups[key] = { chatId: t.chat_id, threadId: t.thread_id, groupTitle, topicTitle, items: [] };
+        const key = topicKeyOf(t);
+        if (!groups.has(key)) {
+          groups.set(key, {
+            key, chatId: t.chat_id, threadId: t.thread_id,
+            groupTitle: t.chat_title || "گروه استودیو",
+            topicTitle: t.topic_name || (t.thread_id ? `تاپیک #${t.thread_id}` : "عمومی"),
+            items: [],
+          });
         }
-        groups[key].items.push(t);
+        groups.get(key).items.push(t);
       });
 
+      const stats = topicStats || computeTopicStats(tasks, numOr(fallbackOrig, DEFAULT_RATE_ORIG), numOr(fallbackRep, DEFAULT_RATE_REP));
+      const single = groups.size === 1;
+
       let html = "";
-      for (const [key, g] of Object.entries(groups)) {
+      if (!single) {
+        const options = [...groups.values()].map(g =>
+          `<option value="${escapeHtml(g.key)}">${escapeHtml(g.groupTitle)} ❯ ${escapeHtml(g.topicTitle)} (${faNum(g.items.length)})</option>`).join("");
         html += `
-          <div class="space-y-2">
-            <div class="text-[11px] font-bold text-amber-400 bg-amber-500/10 px-3 py-2 rounded-xl flex justify-between items-center">
-              <div><span>📁 ${escapeHtml(g.groupTitle)} ❯ 🏷️ ${escapeHtml(g.topicTitle)}</span></div>
-              <div class="flex items-center gap-2">
-                ${isAdmin && g.threadId ? `<button onclick="editTopicByKey(${g.chatId}, ${g.threadId})" class="text-[10px] bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 px-2 py-0.5 rounded-lg font-bold">✏️ نام تاپیک</button>` : ''}
-                <span class="text-[10px] text-slate-400">${g.items.length} طرح</span>
+          <div class="topic-jump-bar -mx-2 px-2 py-2 flex gap-1.5 items-center rounded-xl">
+            <select onchange="jumpToTopic('${containerId}', this.value); this.value='';" class="flex-1 min-w-0 text-xs p-2 rounded-xl text-white outline-none">
+              <option value="">🔎 پرش به تاپیک… (${faNum(groups.size)} تاپیک)</option>
+              ${options}
+            </select>
+            <button onclick="setAllTopics('${containerId}', true)" class="shrink-0 text-[10px] bg-slate-700/70 text-slate-200 px-2 py-2 rounded-lg font-bold">باز همه</button>
+            <button onclick="setAllTopics('${containerId}', false)" class="shrink-0 text-[10px] bg-slate-700/70 text-slate-200 px-2 py-2 rounded-lg font-bold">بستن همه</button>
+          </div>`;
+      }
+
+      for (const g of groups.values()) {
+        const key = g.key;
+        const s = stats.get(key) || computeTopicStats(g.items, numOr(fallbackOrig, DEFAULT_RATE_ORIG), numOr(fallbackRep, DEFAULT_RATE_REP)).get(key);
+        const isOpen = single || openTopics.has(`${containerId}|${key}`);
+        html += `
+          <details id="${topicDomId(containerId, key)}" data-key="${escapeHtml(key)}" class="topic-group rounded-xl border border-amber-500/20 bg-amber-500/5" ${isOpen ? "open" : ""}
+                   ontoggle="onTopicToggle('${containerId}', this.dataset.key, this.open)">
+            <summary class="px-3 py-2.5 space-y-1.5">
+              <div class="flex justify-between items-center gap-2 text-[11px] font-bold text-amber-400">
+                <span class="truncate">📁 ${escapeHtml(g.groupTitle)} ❯ 🏷️ ${escapeHtml(g.topicTitle)}</span>
+                <span class="flex items-center gap-1.5 shrink-0">
+                  ${isAdmin && g.threadId ? `<button onclick="event.preventDefault(); event.stopPropagation(); editTopicByKey(${g.chatId}, ${g.threadId})" class="text-[10px] bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 px-2 py-0.5 rounded-lg font-bold">✏️ نام</button>` : ''}
+                  <span class="text-[10px] text-slate-400">${faNum(g.items.length)} طرح</span>
+                  <span class="chevron text-slate-400">▾</span>
+                </span>
               </div>
-            </div>
-            <div class="space-y-2">
+              <div class="flex flex-wrap items-center gap-1">${topicChips(s)}<span class="chip text-emerald-400">💵 ${faNum(s.sum)} ت</span></div>
+            </summary>
+            <div class="space-y-2 px-2 pb-2">
         `;
 
         g.items.forEach(t => {
@@ -918,7 +1080,7 @@
           }
         });
 
-        html += `</div></div>`;
+        html += `</div></details>`;
       }
 
       container.innerHTML = html;
